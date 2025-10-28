@@ -54,6 +54,7 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		minimaxApiKey,
 		hicapApiKey,
 		aihubmixApiKey,
+		nousResearchApiKey,
 	] = await Promise.all([
 		context.secrets.get("apiKey") as Promise<Secrets["apiKey"]>,
 		context.secrets.get("openRouterApiKey") as Promise<Secrets["openRouterApiKey"]>,
@@ -96,6 +97,7 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		context.secrets.get("minimaxApiKey") as Promise<Secrets["minimaxApiKey"]>,
 		context.secrets.get("hicapApiKey") as Promise<Secrets["hicapApiKey"]>,
 		context.secrets.get("aihubmixApiKey") as Promise<Secrets["aihubmixApiKey"]>,
+		context.secrets.get("nousResearchApiKey") as Promise<Secrets["nousResearchApiKey"]>,
 	])
 
 	return {
@@ -140,6 +142,7 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		minimaxApiKey,
 		hicapApiKey,
 		aihubmixApiKey,
+		nousResearchApiKey,
 	}
 }
 
@@ -384,6 +387,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			context.globalState.get<GlobalStateAndSettings["planModeAihubmixModelId"]>("planModeAihubmixModelId")
 		const planModeAihubmixModelInfo =
 			context.globalState.get<GlobalStateAndSettings["planModeAihubmixModelInfo"]>("planModeAihubmixModelInfo")
+		const planModeNousResearchModelId =
+			context.globalState.get<GlobalStateAndSettings["planModeNousResearchModelId"]>("planModeNousResearchModelId")
 		// Act mode configurations
 		const actModeApiProvider = context.globalState.get<GlobalStateAndSettings["actModeApiProvider"]>("actModeApiProvider")
 		const actModeApiModelId = context.globalState.get<GlobalStateAndSettings["actModeApiModelId"]>("actModeApiModelId")
@@ -450,6 +455,8 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 		>("actModeVercelAiGatewayModelInfo")
 		const actModeOcaModelId = context.globalState.get("actModeOcaModelId") as string | undefined
 		const actModeOcaModelInfo = context.globalState.get("actModeOcaModelInfo") as OcaModelInfo | undefined
+		const actModeNousResearchModelId =
+			context.globalState.get<GlobalStateAndSettings["actModeNousResearchModelId"]>("actModeNousResearchModelId")
 		const sapAiCoreUseOrchestrationMode =
 			context.globalState.get<GlobalStateAndSettings["sapAiCoreUseOrchestrationMode"]>("sapAiCoreUseOrchestrationMode")
 		const actModeHicapModelId = context.globalState.get<GlobalStateAndSettings["actModeHicapModelId"]>("actModeHicapModelId")
@@ -581,6 +588,7 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			planModeHicapModelInfo,
 			planModeAihubmixModelId,
 			planModeAihubmixModelInfo,
+			planModeNousResearchModelId,
 			// Act mode configurations
 			actModeApiProvider: actModeApiProvider || apiProvider,
 			actModeApiModelId,
@@ -619,6 +627,7 @@ export async function readGlobalStateFromDisk(context: ExtensionContext): Promis
 			actModeHicapModelInfo,
 			actModeAihubmixModelId,
 			actModeAihubmixModelInfo,
+			actModeNousResearchModelId,
 
 			// Other global fields
 			focusChainSettings: focusChainSettings || DEFAULT_FOCUS_CHAIN_SETTINGS,
@@ -740,6 +749,7 @@ export async function resetGlobalState(controller: Controller) {
 		"minimaxApiKey",
 		"hicapApiKey",
 		"aihubmixApiKey",
+		"nousResearchApiKey",
 	]
 	await Promise.all(secretKeys.map((key) => context.secrets.delete(key)))
 	await controller.stateManager.reInitialize()
