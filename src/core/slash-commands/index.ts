@@ -28,7 +28,6 @@ export async function parseSlashCommands(
 	const SUPPORTED_DEFAULT_COMMANDS = ["newtask", "smol", "compact", "newrule", "reportbug", "deep-planning", "subagent"]
 
 	// Determine if the current provider/model/setting actually uses native tool calling
-	const willUseNativeTools = isNativeToolCallingConfig(providerInfo!, enableNativeToolCalls || false)
 
 	const commandReplacements: Record<string, string> = {
 		newtask: newTaskToolResponse(willUseNativeTools),
