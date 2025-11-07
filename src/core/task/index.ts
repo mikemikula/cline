@@ -3188,6 +3188,9 @@ export class Task {
 								globalWorkflowToggles,
 								this.ulid,
 								this.stateManager.getGlobalSettingsKey("focusChainSettings"),
+								featureFlagsService.getNativeToolCallEnabled() &&
+									this.stateManager.getGlobalStateKey("nativeToolCallEnabled"),
+								this.getCurrentProviderInfo(),
 							)
 
 							if (needsCheck) {
