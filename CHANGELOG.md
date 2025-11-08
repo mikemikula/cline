@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.36.2
+
+### Patch Changes
+
+- 5a444dc: Added change to hide the context window usage message from env details when using next gen models and before the usage has reached an elevated state
+
 ## [3.36.1]
 
 - fix: remove native tool calling support from Gemini and XAI provider due to invalid tool names issues
