@@ -214,7 +214,6 @@ export interface Settings {
 
 export interface Secrets {
 	apiKey: string | undefined
-	clineAccountId: string | undefined
 	"cline:clineAccountId": string | undefined // Auth_Provider:AccountId
 	openRouterApiKey: string | undefined
 	awsAccessKey: string | undefined

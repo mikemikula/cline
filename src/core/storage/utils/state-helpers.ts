@@ -15,7 +15,6 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 	const [
 		apiKey,
 		openRouterApiKey,
-		firebaseClineAccountId,
 		clineAccountId,
 		awsAccessKey,
 		awsSecretKey,
@@ -57,7 +56,6 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 	] = await Promise.all([
 		context.secrets.get("apiKey") as Promise<Secrets["apiKey"]>,
 		context.secrets.get("openRouterApiKey") as Promise<Secrets["openRouterApiKey"]>,
-		context.secrets.get("clineAccountId") as Promise<Secrets["clineAccountId"]>,
 		context.secrets.get("cline:clineAccountId") as Promise<Secrets["cline:clineAccountId"]>,
 		context.secrets.get("awsAccessKey") as Promise<Secrets["awsAccessKey"]>,
 		context.secrets.get("awsSecretKey") as Promise<Secrets["awsSecretKey"]>,
@@ -102,7 +100,6 @@ export async function readSecretsFromDisk(context: ExtensionContext): Promise<Se
 		authNonce,
 		apiKey,
 		openRouterApiKey,
-		clineAccountId: firebaseClineAccountId,
 		"cline:clineAccountId": clineAccountId,
 		huggingFaceApiKey,
 		huaweiCloudMaasApiKey,
@@ -705,7 +702,6 @@ export async function resetGlobalState(controller: Controller) {
 		"qwenApiKey",
 		"doubaoApiKey",
 		"mistralApiKey",
-		"clineAccountId",
 		"liteLlmApiKey",
 		"fireworksApiKey",
 		"asksageApiKey",

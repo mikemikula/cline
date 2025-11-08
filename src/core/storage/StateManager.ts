@@ -700,7 +700,7 @@ export class StateManager {
 		this.setSecretsBatch({
 			apiKey,
 			openRouterApiKey,
-			clineAccountId,
+			"cline:clineAccountId": clineAccountId,
 			awsAccessKey,
 			awsSecretKey,
 			awsSessionToken,
@@ -977,7 +977,7 @@ export class StateManager {
 			// Secrets
 			apiKey: this.secretsCache["apiKey"],
 			openRouterApiKey: this.secretsCache["openRouterApiKey"],
-			clineAccountId: this.secretsCache["clineAccountId"],
+			clineAccountId: this.secretsCache["cline:clineAccountId"],
 			awsAccessKey: this.secretsCache["awsAccessKey"],
 			awsSecretKey: this.secretsCache["awsSecretKey"],
 			awsSessionToken: this.secretsCache["awsSessionToken"],

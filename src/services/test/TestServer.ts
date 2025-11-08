@@ -201,7 +201,6 @@ export async function createTestServer(controller: Controller): Promise<http.Ser
 					// Clear any existing task
 					await visibleWebview.controller.clearTask()
 
-					// TODO: convert apiKey to clineAccountId
 					// If API key is provided, update the API configuration
 					if (apiKey) {
 						Logger.log("API key provided, updating API configuration")
@@ -213,11 +212,11 @@ export async function createTestServer(controller: Controller): Promise<http.Ser
 						const updatedConfig = {
 							...apiConfiguration,
 							apiProvider: "cline" as ApiProvider,
-							clineAccountId: apiKey,
+							"cline:clineAccountId": apiKey,
 						}
 
 						// Store the API key securely
-						visibleWebview.controller.stateManager.setSecret("clineAccountId", apiKey)
+						visibleWebview.controller.stateManager.setSecret("cline:clineAccountId", apiKey)
 
 						visibleWebview.controller.stateManager.setApiConfiguration(updatedConfig)
 
