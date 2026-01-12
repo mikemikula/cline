@@ -12,7 +12,7 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 	const { autoApprovalSettings, yoloModeToggled, navigateToSettings } = useExtensionState()
 
 	const [isModalVisible, setIsModalVisible] = useState(false)
-	const buttonRef = useRef<HTMLDivElement>(null)
+	const buttonRef = useRef<HTMLButtonElement>(null)
 
 	const handleNavigateToFeatures = (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -102,9 +102,13 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 					<div className="text-sm mb-1">Auto-approve: YOLO</div>
 					<div className="text-muted-foreground text-xs">
 						YOLO mode is enabled.{" "}
-						<span className="underline cursor-pointer hover:text-foreground" onClick={handleNavigateToFeatures}>
+						<button
+							aria-label="Disable YOLO mode in Settings"
+							className="underline cursor-pointer hover:text-foreground bg-transparent border-0 p-0 text-inherit"
+							onClick={handleNavigateToFeatures}
+							type="button">
 							Disable it in Settings
-						</span>
+						</button>
 						.
 					</div>
 				</div>
@@ -142,21 +146,15 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 				}}
 			/>
 
-			<div
+			<button
+				aria-expanded={isModalVisible}
 				aria-label={isModalVisible ? "Close auto-approve settings" : "Open auto-approve settings"}
-				className="group cursor-pointer pt-3 pb-3.5 pr-2 px-3.5 flex items-center justify-between gap-0"
+				className="group cursor-pointer pt-3 pb-3.5 pr-2 px-3.5 flex items-center justify-between gap-0 w-full text-left bg-transparent border-0"
 				onClick={() => {
 					setIsModalVisible((prev) => !prev)
 				}}
-				onKeyDown={(e) => {
-					if (e.key === "Enter" || e.key === " ") {
-						e.preventDefault()
-						e.stopPropagation()
-						setIsModalVisible((prev) => !prev)
-					}
-				}}
 				ref={buttonRef}
-				tabIndex={0}>
+				type="button">
 				<div className="flex flex-nowrap items-center gap-1 min-w-0 flex-1">
 					<span className="whitespace-nowrap">Auto-approve:</span>
 					{getEnabledActionsText()}
@@ -166,7 +164,7 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 				) : (
 					<span className="codicon codicon-chevron-up" />
 				)}
-			</div>
+			</button>
 
 			<AutoApproveModal
 				ACTION_METADATA={ACTION_METADATA}

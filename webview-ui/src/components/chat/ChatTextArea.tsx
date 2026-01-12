@@ -103,7 +103,7 @@ interface GitCommit {
 const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
 
-const SwitchContainer = styled.div<{ disabled: boolean }>`
+const SwitchContainer = styled.button<{ disabled: boolean }>`
 	display: flex;
 	align-items: center;
 	background-color: transparent;
@@ -116,6 +116,10 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 	transform-origin: right center;
 	margin-left: 0;
 	user-select: none; // Prevent text selection
+	padding: 0;
+	position: relative;
+	width: auto;
+	height: auto;
 `
 
 const Slider = styled.div.withConfig({
@@ -1691,19 +1695,22 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								/>
 							)}
 							{!isVoiceRecording && (
-								<div
+								<button
+									aria-label="Send message"
 									className={cn(
 										"input-icon-button",
 										{ disabled: sendingDisabled },
 										"codicon codicon-send text-sm",
 									)}
 									data-testid="send-button"
+									disabled={sendingDisabled}
 									onClick={() => {
 										if (!sendingDisabled) {
 											setIsTextAreaFocused(false)
 											onSend()
 										}
 									}}
+									type="button"
 								/>
 							)}
 						</div>
@@ -1716,7 +1723,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						<ButtonGroup className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
 							<Tooltip>
 								<TooltipContent>Add Context</TooltipContent>
-								<TooltipTrigger>
+								<TooltipTrigger asChild>
 									<VSCodeButton
 										appearance="icon"
 										aria-label="Add Context"
@@ -1732,7 +1739,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 							<Tooltip>
 								<TooltipContent>Add Files & Images</TooltipContent>
-								<TooltipTrigger>
+								<TooltipTrigger asChild>
 									<VSCodeButton
 										appearance="icon"
 										aria-label="Add Files & Images"
@@ -1786,19 +1793,25 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								Toggle w/ <kbd className="text-muted-foreground mx-1">{togglePlanActKeys}</kbd>
 							</p>
 						</TooltipContent>
-						<TooltipTrigger>
-							<SwitchContainer data-testid="mode-switch" disabled={false} onClick={onModeToggle}>
+						<TooltipTrigger asChild>
+							<SwitchContainer
+								aria-checked={mode === "act"}
+								aria-label={`Switch to ${mode === "act" ? "Plan" : "Act"} mode`}
+								data-testid="mode-switch"
+								disabled={false}
+								onClick={onModeToggle}
+								role="switch"
+								type="button">
 								<Slider isAct={mode === "act"} isPlan={mode === "plan"} />
 								{["Plan", "Act"].map((m) => (
 									<div
-										aria-checked={mode === m.toLowerCase()}
 										className={cn(
 											"pt-0.5 pb-px px-2 z-10 text-xs w-1/2 text-center bg-transparent",
 											mode === m.toLowerCase() ? "text-white" : "text-input-foreground",
 										)}
+										key={m}
 										onMouseLeave={() => setShownTooltipMode(null)}
-										onMouseOver={() => setShownTooltipMode(m.toLowerCase() === "plan" ? "plan" : "act")}
-										role="switch">
+										onMouseOver={() => setShownTooltipMode(m.toLowerCase() === "plan" ? "plan" : "act")}>
 										{m}
 									</div>
 								))}

@@ -10,6 +10,7 @@ import { useWindowSize } from "react-use"
 import styled from "styled-components"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import PopupModalContainer from "@/components/common/PopupModalContainer"
+import { useModal } from "@/utils/focusManagement"
 
 const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
@@ -66,7 +67,8 @@ interface ModelItem {
 // Star icon for favorites (only for openrouter/vercel-ai-gateway providers)
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
 	return (
-		<div
+		<button
+			aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
 			onClick={onClick}
 			style={{
 				cursor: "pointer",
@@ -78,9 +80,13 @@ const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: R
 				justifyContent: "center",
 				userSelect: "none",
 				WebkitUserSelect: "none",
-			}}>
+				border: "none",
+				background: "transparent",
+				padding: 0,
+			}}
+			type="button">
 			{isFavorite ? "★" : "☆"}
-		</div>
+		</button>
 	)
 }
 
@@ -110,12 +116,15 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 	const [providerDropdownPosition, setProviderDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 200 })
 	const [selectedIndex, setSelectedIndex] = useState(-1) // For keyboard navigation
 	const searchInputRef = useRef<HTMLInputElement>(null)
-	const triggerRef = useRef<HTMLDivElement>(null)
-	const modalRef = useRef<HTMLDivElement>(null)
 	const providerRowRef = useRef<HTMLDivElement>(null)
 	const providerDropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([]) // For scrollIntoView
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
+
+	// Focus management (combines focus trap, restoration, and Escape key handling)
+	const { triggerRef, containerRef: popupContainerRef } = useModal<HTMLDivElement, HTMLDivElement>(isOpen, () =>
+		onOpenChange(false),
+	)
 
 	// Get current provider from config - use activeEditMode when in split mode
 	const effectiveMode = planActSeparateModelsSetting ? activeEditMode : currentMode
@@ -479,7 +488,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		}
 	}, [isOpen, viewportWidth, viewportHeight])
 
-	// Handle click outside to close
+	// Handle click outside to close (custom logic for provider dropdown portal)
 	useEffect(() => {
 		if (!isOpen) {
 			return
@@ -488,8 +497,8 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		const handleClickOutside = (e: MouseEvent) => {
 			// Don't close if clicking inside modal, trigger, or provider dropdown portal
 			if (
-				modalRef.current &&
-				!modalRef.current.contains(e.target as Node) &&
+				popupContainerRef.current &&
+				!popupContainerRef.current.contains(e.target as Node) &&
 				triggerRef.current &&
 				!triggerRef.current.contains(e.target as Node) &&
 				(!providerDropdownRef.current || !providerDropdownRef.current.contains(e.target as Node))
@@ -507,23 +516,9 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 			clearTimeout(timeoutId)
 			document.removeEventListener("mousedown", handleClickOutside)
 		}
-	}, [isOpen, onOpenChange])
+	}, [isOpen, onOpenChange, popupContainerRef, triggerRef])
 
-	// Handle escape key
-	useEffect(() => {
-		if (!isOpen) {
-			return
-		}
-
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				onOpenChange(false)
-			}
-		}
-
-		document.addEventListener("keydown", handleEscape)
-		return () => document.removeEventListener("keydown", handleEscape)
-	}, [isOpen, onOpenChange])
+	// Note: Escape key handling is provided by useModal hook
 
 	// Close modal when navigating to other views (settings, MCP, history, account)
 	useEffect(() => {
@@ -563,7 +558,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 						$bottomOffset={5}
 						$maxHeight="18em"
 						$menuPosition={menuPosition}
-						ref={modalRef}>
+						ref={popupContainerRef}>
 						{/* Search */}
 						<SearchContainer>
 							<Search size={14} style={{ color: "var(--vscode-descriptionForeground)", flexShrink: 0 }} />
@@ -601,7 +596,9 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 													setProviderDropdownPosition({
 														top: shouldFlipUp ? rect.top - dropdownHeight - 4 : rect.bottom + 4,
 														left: rect.left,
-														width: modalRef.current?.getBoundingClientRect().width || rect.width,
+														width:
+															popupContainerRef.current?.getBoundingClientRect().width ||
+															rect.width,
 														maxHeight: shouldFlipUp ? rect.top - 10 : spaceBelow - 10,
 													})
 												}

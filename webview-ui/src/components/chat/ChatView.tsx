@@ -12,6 +12,7 @@ import { normalizeApiConfiguration } from "@/components/settings/utils/providerU
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useShowNavbar } from "@/context/PlatformContext"
 import { FileServiceClient, UiServiceClient } from "@/services/grpc-client"
+import { SkipLink } from "../common/SkipLink"
 import { Navbar } from "../menu/Navbar"
 import AutoApproveBar from "./auto-approve-menu/AutoApproveBar"
 // Import utilities and hooks from the new structure
@@ -341,7 +342,8 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 
 	return (
 		<ChatLayout isHidden={isHidden}>
-			<div className="flex flex-col flex-1 overflow-hidden">
+			<SkipLink targetId="cline-main-content" />
+			<div className="flex flex-col flex-1 overflow-hidden" id="cline-main-content" tabIndex={-1}>
 				{showNavbar && <Navbar />}
 				{task ? (
 					<TaskSection

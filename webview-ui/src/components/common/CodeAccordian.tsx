@@ -51,21 +51,13 @@ const CodeAccordian = ({
 		<div className="bg-code overflow-hidden rounded-xs border border-editor-group-border">
 			{(path || isFeedback || isConsoleLogs) && (
 				<Button
+					aria-expanded={isExpanded}
 					aria-label={isExpanded ? "Collapse code block" : "Expand code block"}
 					className={cn("text-description flex items-center cursor-pointer select-none w-full py-[9px] px-2.5", {
 						"cursor-wait opacity-70": isLoading,
 					})}
-					onClick={isLoading ? undefined : onToggleExpand}
-					onKeyDown={(e) => {
-						if (!isLoading) {
-							e.preventDefault()
-							if (e.key === "Enter" || e.key === " ") {
-								e.stopPropagation()
-								onToggleExpand()
-							}
-						}
-					}}
-					tabIndex={0}
+					disabled={isLoading}
+					onClick={onToggleExpand}
 					variant="text">
 					{isFeedback || isConsoleLogs ? (
 						<div className="flex items-center">

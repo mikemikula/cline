@@ -29,7 +29,7 @@ const InfoValue = styled.span`
 	font-weight: 500;
 `
 
-const CollapsibleHeader = styled.div`
+const CollapsibleHeader = styled.button`
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -41,6 +41,11 @@ const CollapsibleHeader = styled.div`
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	color: var(--vscode-descriptionForeground);
+	border: none;
+	background: transparent;
+	padding: 0;
+	text-align: left;
+	width: auto;
 
 	&:hover {
 		color: var(--vscode-foreground);
@@ -234,7 +239,11 @@ export const ModelInfoView = ({
 			</InfoRow>
 
 			{/* Collapsible Advanced Section */}
-			<CollapsibleHeader onClick={() => setAdvancedExpanded(!advancedExpanded)}>
+			<CollapsibleHeader
+				aria-expanded={advancedExpanded}
+				aria-label={advancedExpanded ? "Collapse advanced options" : "Expand advanced options"}
+				onClick={() => setAdvancedExpanded(!advancedExpanded)}
+				type="button">
 				<CollapsibleArrow $isExpanded={advancedExpanded}>▶</CollapsibleArrow>
 				Advanced
 			</CollapsibleHeader>

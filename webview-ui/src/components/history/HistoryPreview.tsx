@@ -117,10 +117,12 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								.filter((item) => item.ts && item.task)
 								.slice(0, 3)
 								.map((item) => (
-									<div
-										className="history-preview-item"
+									<button
+										aria-label={`View task: ${item.task}`}
+										className="history-preview-item w-full text-left"
 										key={item.id}
-										onClick={() => handleHistorySelect(item.id)}>
+										onClick={() => handleHistorySelect(item.id)}
+										type="button">
 										<div className="history-task-content">
 											{item.isFavorited && (
 												<span
@@ -140,7 +142,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 												<span className="history-cost-chip">${item.totalCost.toFixed(2)}</span>
 											)}
 										</div>
-									</div>
+									</button>
 								))}
 							<div
 								style={{

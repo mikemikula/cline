@@ -29,9 +29,13 @@ export const TelemetryBanner: React.FC = () => {
 			</p>
 			<p className="m-0">
 				<span>You can turn this setting off in </span>
-				<span className="text-link cursor-pointer" onClick={handleOpenSettings}>
+				<button
+					aria-label="Open settings"
+					className="text-link cursor-pointer bg-transparent border-0 p-0 font-inherit"
+					onClick={handleOpenSettings}
+					type="button">
 					settings
-				</span>
+				</button>
 				.
 			</p>
 

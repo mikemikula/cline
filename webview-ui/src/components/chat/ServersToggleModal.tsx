@@ -9,15 +9,20 @@ import ServersToggleList from "@/components/mcp/configuration/tabs/installed/Ser
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
+import { useModal } from "@/utils/focusManagement"
 
 const ServersToggleModal: React.FC = () => {
 	const { mcpServers, navigateToMcp, setMcpServers } = useExtensionState()
 	const [isVisible, setIsVisible] = useState(false)
-	const buttonRef = useRef<HTMLDivElement>(null)
-	const modalRef = useRef<HTMLDivElement>(null)
+	const wrapperRef = useRef<HTMLDivElement>(null) // Wrapper div for click-away detection
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 	const [arrowPosition, setArrowPosition] = useState(0)
 	const [menuPosition, setMenuPosition] = useState(0)
+
+	// Focus management (combines focus trap, restoration, and Escape key handling)
+	const { triggerRef: buttonRef, containerRef: popupContainerRef } = useModal<HTMLDivElement, HTMLDivElement>(isVisible, () =>
+		setIsVisible(false),
+	)
 
 	useEffect(() => {
 		if (isVisible) {
@@ -35,7 +40,7 @@ const ServersToggleModal: React.FC = () => {
 	}, [isVisible, setMcpServers])
 
 	// Close modal when clicking outside
-	useClickAway(modalRef, () => {
+	useClickAway(wrapperRef, () => {
 		setIsVisible(false)
 	})
 
@@ -52,11 +57,11 @@ const ServersToggleModal: React.FC = () => {
 	}, [isVisible, viewportWidth, viewportHeight])
 
 	return (
-		<div className="inline-flex min-w-0 max-w-full items-center" ref={modalRef}>
+		<div className="inline-flex min-w-0 max-w-full items-center" ref={wrapperRef}>
 			<div className="inline-flex w-full items-center" ref={buttonRef}>
 				<Tooltip>
 					{!isVisible && <TooltipContent>Manage MCP Servers</TooltipContent>}
-					<TooltipTrigger>
+					<TooltipTrigger asChild>
 						<VSCodeButton
 							appearance="icon"
 							aria-label={isVisible ? "Hide MCP Servers" : "Show MCP Servers"}
@@ -69,7 +74,7 @@ const ServersToggleModal: React.FC = () => {
 			</div>
 
 			{isVisible && (
-				<PopupModalContainer $arrowPosition={arrowPosition} $menuPosition={menuPosition}>
+				<PopupModalContainer $arrowPosition={arrowPosition} $menuPosition={menuPosition} ref={popupContainerRef}>
 					<div className="flex-shrink-0 px-3 pt-2">
 						<div className="flex justify-between items-center mb-2.5">
 							<div className="m-0 text-sm font-medium">MCP Servers</div>

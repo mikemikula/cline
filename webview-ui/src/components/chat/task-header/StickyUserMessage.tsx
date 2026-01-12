@@ -21,18 +21,6 @@ export const StickyUserMessage: React.FC<StickyUserMessageProps> = memo(
 			}
 		}, [onScrollToMessage])
 
-		const handleKeyDown = useCallback(
-			(e: React.KeyboardEvent) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault()
-					if (onScrollToMessage) {
-						onScrollToMessage()
-					}
-				}
-			},
-			[onScrollToMessage],
-		)
-
 		// Don't render if no user message or not visible
 		if (!lastUserMessage?.text || !isVisible) {
 			return null
@@ -41,22 +29,21 @@ export const StickyUserMessage: React.FC<StickyUserMessageProps> = memo(
 		const messageText = lastUserMessage.text.trim()
 
 		return (
-			<div
+			<button
 				aria-label={`Scroll to your message: ${messageText}`}
 				className={cn(
-					"relative flex items-center px-2.5 pt-2 pb-2 cursor-pointer select-none",
+					"relative flex items-center px-2.5 pt-2 pb-2 cursor-pointer select-none w-full text-left",
 					"backdrop-blur-sm",
 					"hover:brightness-110",
+					"border-0 bg-transparent",
 				)}
 				onClick={handleClick}
-				onKeyDown={handleKeyDown}
-				role="button"
 				style={{
 					backgroundColor: "var(--vscode-badge-background)",
 					borderRadius: "3px",
 				}}
-				tabIndex={0}
-				title="Click to scroll to your message">
+				title="Click to scroll to your message"
+				type="button">
 				{/* Message text (truncated via CSS text-ellipsis) */}
 				<div
 					className={cn(
@@ -66,7 +53,7 @@ export const StickyUserMessage: React.FC<StickyUserMessageProps> = memo(
 					)}>
 					{highlightText(messageText, false)}
 				</div>
-			</div>
+			</button>
 		)
 	},
 	(prevProps, nextProps) => {

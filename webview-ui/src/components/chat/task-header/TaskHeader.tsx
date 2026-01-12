@@ -116,7 +116,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			{/* Task Header */}
 			<div
 				className={cn(
-					"relative overflow-hidden cursor-pointer rounded-sm flex flex-col gap-1.5 z-10 pt-2 pb-2 px-2 hover:opacity-100 bg-(--vscode-toolbar-hoverBackground)/65",
+					"relative overflow-hidden rounded-sm flex flex-col gap-1.5 z-10 pt-2 pb-2 px-2 hover:opacity-100 bg-(--vscode-toolbar-hoverBackground)/65",
 					{
 						"opacity-100 border-1": isTaskExpanded, // No hover effects when expanded, add border
 						"hover:bg-toolbar-hover border-1": !isTaskExpanded, // Hover effects only when collapsed
@@ -126,22 +126,18 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 					borderColor: environmentBorderColor,
 				}}>
 				{/* Task Title */}
-				<div
+				<button
+					aria-expanded={isTaskExpanded}
 					aria-label={isTaskExpanded ? "Collapse task header" : "Expand task header"}
-					className="flex justify-between items-center cursor-pointer"
+					className="flex justify-between items-center w-full text-left border-none bg-transparent p-0 cursor-pointer"
 					onClick={toggleTaskExpanded}
-					onKeyDown={(e) => {
-						if (e.key === "Enter" || e.key === " ") {
-							e.preventDefault()
-							e.stopPropagation()
-							toggleTaskExpanded()
-						}
-					}}
-					tabIndex={0}>
+					type="button">
 					<div className="flex justify-between items-center">
 						{isTaskExpanded ? <ChevronDownIcon size="16" /> : <ChevronRightIcon size="16" />}
 						{isTaskExpanded && (
-							<div className="mt-1 flex justify-end cursor-pointer opacity-80 gap-2 mx-2">
+							<div
+								className="mt-1 flex justify-end cursor-pointer opacity-80 gap-2 mx-2"
+								onClick={(e) => e.stopPropagation()}>
 								<CopyTaskButton className={BUTTON_CLASS} taskText={task.text} />
 								<DeleteTaskButton
 									className={BUTTON_CLASS}
@@ -162,7 +158,9 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							</div>
 						)}
 					</div>
-					<div className="inline-flex items-center justify-end select-none shrink-0">
+					<div
+						className="inline-flex items-center justify-end select-none shrink-0"
+						onClick={(e) => e.stopPropagation()}>
 						{isCostAvailable && (
 							<div
 								className="mx-1 px-1 py-0.25 rounded-full inline-flex shrink-0 text-badge-background bg-badge-foreground/80 items-center"
@@ -172,7 +170,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						)}
 						<NewTaskButton className={BUTTON_CLASS} onClick={onClose} />
 					</div>
-				</div>
+				</button>
 
 				{/* Expand/Collapse Task Details */}
 				{isTaskExpanded && (

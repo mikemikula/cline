@@ -19,6 +19,7 @@ import PopupModalContainer from "@/components/common/PopupModalContainer"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient } from "@/services/grpc-client"
+import { useModal } from "@/utils/focusManagement"
 import { isMacOSOrLinux } from "@/utils/platformUtils"
 import HookRow from "./HookRow"
 import NewRuleRow from "./NewRuleRow"
@@ -62,12 +63,16 @@ const ClineRulesToggleModal: React.FC = () => {
 
 	const isWindows = !isMacOSOrLinux()
 	const [isVisible, setIsVisible] = useState(false)
-	const buttonRef = useRef<HTMLDivElement>(null)
-	const modalRef = useRef<HTMLDivElement>(null)
+	const wrapperRef = useRef<HTMLDivElement>(null) // Wrapper div for click-away detection
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 	const [arrowPosition, setArrowPosition] = useState(0)
 	const [menuPosition, setMenuPosition] = useState(0)
 	const [currentView, setCurrentView] = useState<"rules" | "workflows" | "hooks" | "skills">("rules")
+
+	// Focus management (combines focus trap, restoration, and Escape key handling)
+	const { triggerRef: buttonRef, containerRef: popupContainerRef } = useModal<HTMLDivElement, HTMLDivElement>(isVisible, () =>
+		setIsVisible(false),
+	)
 
 	// Auto-switch to rules tab if hooks become disabled while viewing hooks tab
 	useEffect(() => {
@@ -423,7 +428,7 @@ const ClineRulesToggleModal: React.FC = () => {
 	}
 
 	// Close modal when clicking outside
-	useClickAway(modalRef, () => {
+	useClickAway(wrapperRef, () => {
 		setIsVisible(false)
 	})
 
@@ -440,11 +445,11 @@ const ClineRulesToggleModal: React.FC = () => {
 	}, [isVisible, viewportWidth, viewportHeight])
 
 	return (
-		<div className="inline-flex min-w-0 max-w-full items-center" ref={modalRef}>
+		<div className="inline-flex min-w-0 max-w-full items-center" ref={wrapperRef}>
 			<div className="inline-flex w-full items-center" ref={buttonRef}>
 				<Tooltip>
 					{!isVisible && <TooltipContent>Manage Cline Rules & Workflows</TooltipContent>}
-					<TooltipTrigger>
+					<TooltipTrigger asChild>
 						<VSCodeButton
 							appearance="icon"
 							aria-label={isVisible ? "Hide Cline Rules & Workflows" : "Show Cline Rules & Workflows"}
@@ -457,7 +462,7 @@ const ClineRulesToggleModal: React.FC = () => {
 			</div>
 
 			{isVisible && (
-				<PopupModalContainer $arrowPosition={arrowPosition} $menuPosition={menuPosition}>
+				<PopupModalContainer $arrowPosition={arrowPosition} $menuPosition={menuPosition} ref={popupContainerRef}>
 					{/* Fixed header section - tabs and description */}
 					<div className="flex-shrink-0 px-2 pt-0">
 						{/* Tabs container */}

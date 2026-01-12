@@ -88,16 +88,10 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 				overflow: "hidden",
 				border: "1px solid var(--vscode-editorGroup-border)",
 			}}>
-			<div
+			<button
+				aria-expanded={isExpanded}
 				aria-label={isExpanded ? "Collapse search results" : "Expand search results"}
 				onClick={onToggleExpand}
-				onKeyDown={(e) => {
-					if (e.key === "Enter" || e.key === " ") {
-						e.preventDefault()
-						e.stopPropagation()
-						onToggleExpand()
-					}
-				}}
 				style={{
 					color: "var(--vscode-descriptionForeground)",
 					display: "flex",
@@ -108,8 +102,12 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 					WebkitUserSelect: "none",
 					MozUserSelect: "none",
 					msUserSelect: "none",
+					width: "100%",
+					border: "none",
+					background: "transparent",
+					textAlign: "left",
 				}}
-				tabIndex={0}>
+				type="button">
 				<span>/</span>
 				<span
 					style={{
@@ -127,7 +125,7 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 						fontSize: 13.5,
 						margin: "1px 0",
 					}}></span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div style={{ padding: "10px", borderTop: "1px solid var(--vscode-editorGroup-border)" }}>

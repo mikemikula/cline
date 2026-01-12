@@ -11,6 +11,7 @@ interface PopupModalContainerProps {
 /**
  * Shared styled container for popup modals (ModelPicker, ServersToggle, ClineRulesToggle).
  * Provides consistent positioning, styling, and arrow pointer.
+ * Supports refs directly via styled-components.
  */
 const PopupModalContainer = styled.div<PopupModalContainerProps>`
 	position: fixed;

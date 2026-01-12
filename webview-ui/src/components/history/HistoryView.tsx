@@ -317,11 +317,12 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						value={searchQuery}>
 						<div className="codicon codicon-search opacity-80 mt-0.5 !text-sm" slot="start" />
 						{searchQuery && (
-							<div
+							<button
 								aria-label="Clear search"
 								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
 								onClick={() => setSearchQuery("")}
 								slot="end"
+								type="button"
 							/>
 						)}
 					</VSCodeTextField>
