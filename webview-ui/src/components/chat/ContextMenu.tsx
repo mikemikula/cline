@@ -3,6 +3,7 @@ import { cleanPathPrefix } from "@/components/common/CodeAccordian"
 import ScreenReaderAnnounce from "@/components/common/ScreenReaderAnnounce"
 import { useMenuAnnouncement } from "@/hooks/useMenuAnnouncement"
 import { ContextMenuOptionType, ContextMenuQueryItem, getContextMenuOptions, SearchResult } from "@/utils/context-mentions"
+import { createListboxOptionProps, createListboxProps } from "@/utils/interactiveProps"
 
 interface ContextMenuProps {
 	onSelect: (type: ContextMenuOptionType, value?: string) => void
@@ -223,6 +224,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 	return (
 		<div
 			onMouseDown={onMouseDown}
+			role="presentation"
 			style={{
 				position: "absolute",
 				bottom: "calc(100% - 10px)",
@@ -232,14 +234,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			}}>
 			<ScreenReaderAnnounce message={announcement} />
 			<div
-				aria-activedescendant={
+				{...createListboxProps(
+					"Context mentions",
 					filteredOptions.length > 0 && selectedIndex > -1 && isOptionSelectable(filteredOptions[selectedIndex])
 						? `context-menu-item-${selectedIndex}`
-						: undefined
-				}
-				aria-label="Context mentions"
+						: undefined,
+				)}
 				ref={menuRef}
-				role="listbox"
 				style={{
 					backgroundColor: "var(--vscode-dropdown-background)",
 					border: "1px solid var(--vscode-editorGroup-border)",
@@ -272,11 +273,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
 					return (
 						<div
-							aria-label={getOptionLabel(option)}
-							aria-selected={index === selectedIndex && isOptionSelectable(option)}
-							id={`context-menu-item-${index}`}
+							{...createListboxOptionProps(
+								getOptionLabel(option),
+								index === selectedIndex && isOptionSelectable(option),
+								`context-menu-item-${index}`,
+								() => handleSelect(option),
+								!isOptionSelectable(option),
+							)}
 							key={generatedKey}
-							onClick={() => handleSelect(option)}
 							onMouseEnter={() => isOptionSelectable(option) && setSelectedIndex(index)}
 							role="option"
 							style={{
@@ -294,7 +298,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 									index === selectedIndex && isOptionSelectable(option)
 										? "var(--vscode-quickInputList-focusBackground)"
 										: "",
-							}}>
+							}}
+							tabIndex={isOptionSelectable(option) ? 0 : -1}>
 							<div
 								style={{
 									display: "flex",

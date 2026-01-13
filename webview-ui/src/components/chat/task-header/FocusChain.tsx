@@ -6,6 +6,7 @@ import React, { memo, useCallback, useMemo, useState } from "react"
 import ChecklistRenderer from "@/components/common/ChecklistRenderer"
 import LightMarkdown from "@/components/common/LightMarkdown"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps, createToggleButtonProps } from "@/utils/interactiveProps"
 
 // Optimized interface with readonly properties to prevent accidental mutations
 interface TodoInfo {
@@ -190,20 +191,19 @@ export const FocusChain: React.FC<FocusChainProps> = memo(
 		return (
 			<div className="relative rounded-sm bg-toolbar-hover/65 flex flex-col gap-1.5 select-none hover:bg-toolbar-hover overflow-hidden opacity-80 hover:opacity-100 transition-[transform,box-shadow] duration-200">
 				<button
-					aria-expanded={isExpanded}
-					aria-label={isExpanded ? "Collapse focus chain" : "Expand focus chain"}
+					{...createToggleButtonProps(
+						isExpanded,
+						handleToggle,
+						isExpanded ? "Collapse focus chain" : "Expand focus chain",
+					)}
 					className="w-full text-left border-none bg-transparent p-0 cursor-pointer"
-					onClick={handleToggle}
-					title={CLICK_TO_EDIT_TITLE}
-					type="button">
+					title={CLICK_TO_EDIT_TITLE}>
 					<ToDoListHeader isExpanded={isExpanded} todoInfo={todoInfo} />
 				</button>
 				{isExpanded && (
 					<button
-						aria-label="Edit to-do list"
-						className="mx-1 pb-2 px-1 relative w-full text-left border-none bg-transparent p-0 cursor-pointer"
-						onClick={handleEditClick}
-						type="button">
+						{...createBaseButtonProps("Edit to-do list", handleEditClick)}
+						className="mx-1 pb-2 px-1 relative w-full text-left border-none bg-transparent p-0 cursor-pointer">
 						<ChecklistRenderer text={lastProgressMessageText!} />
 						{isCompleted && (
 							<div className="mt-2 text-xs font-semibold text-muted-foreground">{NEW_STEPS_MESSAGE}</div>

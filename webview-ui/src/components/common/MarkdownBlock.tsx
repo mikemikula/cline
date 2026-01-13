@@ -19,29 +19,34 @@ import { WithCopyButton } from "./CopyButton"
  */
 const ActModeHighlight: React.FC = () => {
 	const { mode } = useExtensionState()
+	const isClickable = mode === "plan"
+
+	const handleToggle = () => {
+		if (isClickable) {
+			StateServiceClient.togglePlanActModeProto(
+				TogglePlanActModeRequest.create({
+					mode: PlanActMode.ACT,
+				}),
+			)
+		}
+	}
 
 	return (
-		<span
-			className={cn("text-link inline-flex items-center gap-1", {
-				"hover:opacity-90 cursor-pointer": mode === "plan",
-				"cursor-not-allowed opacity-60": mode !== "plan",
+		<button
+			aria-label={isClickable ? "Toggle to Act Mode" : "Already in Act Mode"}
+			className={cn("text-link inline-flex items-center gap-1 bg-transparent border-0 p-0 font-inherit", {
+				"hover:opacity-90 cursor-pointer": isClickable,
+				"cursor-default opacity-60": !isClickable,
 			})}
-			onClick={() => {
-				// Only toggle to Act mode if we're currently in Plan mode
-				if (mode === "plan") {
-					StateServiceClient.togglePlanActModeProto(
-						TogglePlanActModeRequest.create({
-							mode: PlanActMode.ACT,
-						}),
-					)
-				}
-			}}
-			title={mode === "plan" ? "Click to toggle to Act Mode" : "Already in Act Mode"}>
+			disabled={!isClickable}
+			onClick={handleToggle}
+			title={isClickable ? "Click to toggle to Act Mode" : "Already in Act Mode"}
+			type="button">
 			<div className="p-1 rounded-md bg-code flex items-center justify-end w-7 border border-input-border">
 				<div className="rounded-full bg-link w-2 h-2" />
 			</div>
 			Act Mode (⌘⇧A)
-		</span>
+		</button>
 	)
 }
 

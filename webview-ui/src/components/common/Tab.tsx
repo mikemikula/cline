@@ -1,4 +1,5 @@
 import React, { forwardRef, HTMLAttributes, useCallback, useMemo, useRef } from "react"
+import { createArrowKeyNavigationHandler, createTabButtonProps } from "@/utils/interactiveProps"
 
 type TabProps = HTMLAttributes<HTMLDivElement>
 
@@ -62,39 +63,34 @@ export const TabList = forwardRef<
 		[onValueChange],
 	)
 
-	// Arrow key navigation handler
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLDivElement>) => {
-			if (e.key !== "ArrowUp" && e.key !== "ArrowDown") {
-				return
+	// Navigate to tab at index and focus it
+	const navigateToTab = useCallback(
+		(index: number) => {
+			const nextValue = tabValues[index]
+			if (nextValue) {
+				onValueChange(nextValue)
+				requestAnimationFrame(() => {
+					tabRefs.current.get(nextValue)?.focus()
+				})
 			}
-
-			e.preventDefault()
-
-			// Find current tab index
-			const currentIndex = tabValues.indexOf(value)
-			if (currentIndex === -1) return
-
-			// Calculate next index with wraparound
-			let nextIndex: number
-			if (e.key === "ArrowDown") {
-				nextIndex = (currentIndex + 1) % tabValues.length
-			} else {
-				nextIndex = (currentIndex - 1 + tabValues.length) % tabValues.length
-			}
-
-			// Change to next tab and focus it
-			const nextValue = tabValues[nextIndex]
-			onValueChange(nextValue)
-
-			// Focus the next tab button
-			requestAnimationFrame(() => {
-				const nextButton = tabRefs.current.get(nextValue)
-				nextButton?.focus()
-			})
 		},
-		[tabValues, value, onValueChange],
+		[tabValues, onValueChange],
 	)
+
+	const handleKeyDown = useMemo(() => {
+		const currentIndex = tabValues.indexOf(value)
+		if (currentIndex === -1) {
+			return undefined
+		}
+
+		return createArrowKeyNavigationHandler({
+			onNext: () => navigateToTab((currentIndex + 1) % tabValues.length),
+			onPrev: () => navigateToTab((currentIndex - 1 + tabValues.length) % tabValues.length),
+			onFirst: () => navigateToTab(0),
+			onLast: () => navigateToTab(tabValues.length - 1),
+			orientation: "both", // Support both horizontal and vertical arrows
+		})
+	}, [tabValues, value, navigateToTab])
 
 	return (
 		<div className={`flex ${className}`} onKeyDown={handleKeyDown} ref={ref} role="tablist" {...props}>
@@ -125,18 +121,10 @@ export const TabTrigger = forwardRef<
 		onSelect?: () => void
 	}
 >(({ children, className, value, isSelected, onSelect, ...props }, ref) => {
-	// Ensure we're using the value prop correctly
+	const tabButtonProps = createTabButtonProps(value, isSelected ?? false, `panel-${value}`, onSelect ?? (() => {}))
+
 	return (
-		<button
-			aria-selected={isSelected}
-			className={`focus:outline-none ${className}`}
-			data-value={value}
-			onClick={onSelect}
-			ref={ref}
-			role="tab"
-			tabIndex={isSelected ? 0 : -1} // Add data-value attribute for debugging
-			type="button"
-			{...props}>
+		<button {...tabButtonProps} className={`focus:outline-none ${className}`} data-value={value} ref={ref} {...props}>
 			{children}
 		</button>
 	)

@@ -481,25 +481,33 @@ export const ChatRowContent = memo(
 								<span className="font-bold">Cline wants to read this file:</span>
 							</div>
 							<div className="bg-code rounded-sm overflow-hidden border border-editor-group-border">
-								<div
-									className={cn("text-description flex items-center cursor-pointer select-none py-2 px-2.5", {
-										"cursor-default select-text": isImage,
-									})}
-									onClick={() => {
-										if (!isImage) {
+								{isImage ? (
+									<div className="text-description flex items-center py-2 px-2.5 select-text">
+										{tool.path?.startsWith(".") && <span>.</span>}
+										{tool.path && !tool.path.startsWith(".") && <span>/</span>}
+										<span className="ph-no-capture whitespace-nowrap overflow-hidden text-ellipsis mr-2 text-left [direction:rtl]">
+											{cleanPathPrefix(tool.path ?? "") + "\u200E"}
+										</span>
+									</div>
+								) : (
+									<button
+										aria-label={`Open file: ${tool.path}`}
+										className="text-description flex items-center py-2 px-2.5 cursor-pointer select-none w-full bg-transparent border-0"
+										onClick={() => {
 											FileServiceClient.openFile(StringRequest.create({ value: tool.content })).catch(
 												(err) => console.error("Failed to open file:", err),
 											)
-										}
-									}}>
-									{tool.path?.startsWith(".") && <span>.</span>}
-									{tool.path && !tool.path.startsWith(".") && <span>/</span>}
-									<span className="ph-no-capture whitespace-nowrap overflow-hidden text-ellipsis mr-2 text-left [direction: rtl]">
-										{cleanPathPrefix(tool.path ?? "") + "\u200E"}
-									</span>
-									<div className="grow" />
-									{!isImage && <SquareArrowOutUpRightIcon className="size-2" />}
-								</div>
+										}}
+										type="button">
+										{tool.path?.startsWith(".") && <span>.</span>}
+										{tool.path && !tool.path.startsWith(".") && <span>/</span>}
+										<span className="ph-no-capture whitespace-nowrap overflow-hidden text-ellipsis mr-2 text-left [direction:rtl]">
+											{cleanPathPrefix(tool.path ?? "") + "\u200E"}
+										</span>
+										<div className="grow" />
+										<SquareArrowOutUpRightIcon className="size-2" />
+									</button>
+								)}
 							</div>
 						</div>
 					)
@@ -596,18 +604,12 @@ export const ChatRowContent = memo(
 								<span className="font-bold">Cline is condensing the conversation:</span>
 							</div>
 							<div className="bg-code overflow-hidden border border-editor-group-border rounded-[3px]">
-								<div
+								<button
+									aria-expanded={isExpanded}
 									aria-label={isExpanded ? "Collapse summary" : "Expand summary"}
-									className="text-description py-2 px-2.5 cursor-pointer select-none"
+									className="text-description py-2 px-2.5 cursor-pointer select-none w-full text-left bg-transparent border-0"
 									onClick={handleToggle}
-									onKeyDown={(e) => {
-										if (e.key === "Enter" || e.key === " ") {
-											e.preventDefault()
-											e.stopPropagation()
-											handleToggle()
-										}
-									}}
-									tabIndex={0}>
+									type="button">
 									{isExpanded ? (
 										<div>
 											<div className="flex items-center mb-2">
@@ -625,7 +627,7 @@ export const ChatRowContent = memo(
 											<span className="codicon codicon-chevron-down my-0.5 shrink-0" />
 										</div>
 									)}
-								</div>
+								</button>
 							</div>
 						</div>
 					)
@@ -642,20 +644,21 @@ export const ChatRowContent = memo(
 										: "Cline fetched content from this URL:"}
 								</span>
 							</div>
-							<div
-								className="bg-code rounded-xs overflow-hidden border border-editor-group-border py-2 px-2.5 cursor-pointer select-none"
+							<button
+								aria-label={`Open URL: ${tool.path}`}
+								className="bg-code rounded-xs overflow-hidden border border-editor-group-border py-2 px-2.5 cursor-pointer select-none w-full text-left"
 								onClick={() => {
-									// Open the URL in the default browser using gRPC
 									if (tool.path) {
 										UiServiceClient.openUrl(StringRequest.create({ value: tool.path })).catch((err) => {
 											console.error("Failed to open URL:", err)
 										})
 									}
-								}}>
+								}}
+								type="button">
 								<span className="ph-no-capture whitespace-nowrap overflow-hidden text-ellipsis mr-2 [direction:rtl] text-left text-link underline">
 									{tool.path + "\u200E"}
 								</span>
-							</div>
+							</button>
 						</div>
 					)
 				case "webSearch":
@@ -754,7 +757,10 @@ export const ChatRowContent = memo(
 
 						{useMcpServer.type === "use_mcp_tool" && (
 							<div>
-								<div onClick={(e) => e.stopPropagation()}>
+								<div
+									onClick={(e) => e.stopPropagation()}
+									onKeyDown={(e) => e.stopPropagation()}
+									role="presentation">
 									<McpToolRow
 										serverName={useMcpServer.serverName}
 										tool={{
@@ -1210,6 +1216,7 @@ export const ChatRowContent = memo(
 									Background Terminal mode for better reliability.
 								</div>
 								<button
+									aria-label="Enable background terminal mode"
 									className={cn(
 										"bg-button-background text-button-foreground border-0 rounded-xs py-1.5 px-3 text-[12px] flex items-center gap-1.5 cursor-pointer hover:bg-button-hover",
 										{
@@ -1219,12 +1226,12 @@ export const ChatRowContent = memo(
 									disabled={isBackgroundModeEnabled}
 									onClick={async () => {
 										try {
-											// Enable background terminal execution mode
 											await UiServiceClient.setTerminalExecutionMode(BooleanRequest.create({ value: true }))
 										} catch (error) {
 											console.error("Failed to enable background terminal:", error)
 										}
-									}}>
+									}}
+									type="button">
 									<SettingsIcon className="size-2" />
 									{isBackgroundModeEnabled
 										? "Background Terminal Enabled"

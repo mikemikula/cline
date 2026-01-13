@@ -1,6 +1,7 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { AlertTriangle } from "lucide-react"
 import React, { ReactNode } from "react"
+import { createEscapeHandler } from "@/utils/interactiveProps"
 import { OPENROUTER_MODEL_PICKER_Z_INDEX } from "../settings/OpenRouterModelPicker"
 
 interface AlertDialogProps {
@@ -25,6 +26,8 @@ export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) 
 		<div
 			className={`fixed inset-0 bg-black/50 flex items-center justify-center`}
 			onClick={handleBackdropClick}
+			onKeyDown={createEscapeHandler(() => onOpenChange(false))}
+			role="presentation"
 			style={{ zIndex: OPENROUTER_MODEL_PICKER_Z_INDEX + 50 }}>
 			{children}
 		</div>
@@ -34,8 +37,11 @@ export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) 
 export function AlertDialogContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
+			aria-modal="true"
 			className={`fixed top-[50%] left-[50%] grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] ${className}`}
 			onClick={(e) => e.stopPropagation()}
+			onKeyDown={(e) => e.stopPropagation()}
+			role="dialog"
 			{...props}>
 			<div className="bg-(--vscode-editor-background) rounded-sm gap-3 border border-(--vscode-panel-border) p-6 shadow-lg sm:max-w-lg">
 				{children}

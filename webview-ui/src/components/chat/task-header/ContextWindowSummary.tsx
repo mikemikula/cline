@@ -1,6 +1,7 @@
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 import React, { memo, useCallback, useMemo, useState } from "react"
 import { formatLargeNumber as formatTokenNumber } from "@/utils/format"
+import { createButtonStyle, createToggleButtonProps } from "@/utils/interactiveProps"
 
 interface TokenUsageInfoProps {
 	tokensIn?: number
@@ -32,26 +33,22 @@ const AccordionItem = memo<{
 	onToggle: (event?: React.MouseEvent) => void
 	children?: React.ReactNode
 }>(({ title, value, isExpanded, onToggle, children }) => {
-	const handleClick = useCallback(
-		(event: React.MouseEvent) => {
-			event.preventDefault()
-			event.stopPropagation()
-			onToggle(event)
-		},
-		[onToggle],
-	)
+	const handleClick = useCallback(() => {
+		onToggle()
+	}, [onToggle])
 
 	return (
 		<div className="flex flex-col w-full">
-			<div
+			<button
+				{...createToggleButtonProps(isExpanded, handleClick, `${title}: ${value}`)}
 				className="flex justify-between items-center gap-1 cursor-pointer hover:bg-foreground/5 rounded p-0.5 transition-colors w-full"
-				onClick={handleClick}>
+				style={createButtonStyle.flexReset({ color: "inherit", font: "inherit", textAlign: "left" })}>
 				<div className="flex items-center gap-1">
 					{isExpanded ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
 					<div className="font-semibold">{title}</div>
 				</div>
 				<div className="text-muted-foreground">{value}</div>
-			</div>
+			</button>
 			{isExpanded && children && <div className="ml-5 my-1 text-xs text-muted-foreground">{children}</div>}
 		</div>
 	)

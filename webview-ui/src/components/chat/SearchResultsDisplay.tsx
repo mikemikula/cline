@@ -1,4 +1,5 @@
 import React, { useMemo } from "react"
+import { createButtonStyle, createToggleButtonProps } from "../../utils/interactiveProps"
 import CodeAccordian from "../common/CodeAccordian"
 
 interface SearchResultsDisplayProps {
@@ -80,6 +81,15 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 	// For multi-workspace results, render a custom view
 	const { sections, summaryLine } = parsedData
 
+	const buttonProps = {
+		...createToggleButtonProps(isExpanded, onToggleExpand, isExpanded ? "Collapse search results" : "Expand search results"),
+		style: createButtonStyle.fullWidthFlex({
+			color: "var(--vscode-descriptionForeground)",
+			padding: "9px 10px",
+			textAlign: "left",
+		}),
+	}
+
 	return (
 		<div
 			style={{
@@ -88,26 +98,7 @@ const SearchResultsDisplay: React.FC<SearchResultsDisplayProps> = ({
 				overflow: "hidden",
 				border: "1px solid var(--vscode-editorGroup-border)",
 			}}>
-			<button
-				aria-expanded={isExpanded}
-				aria-label={isExpanded ? "Collapse search results" : "Expand search results"}
-				onClick={onToggleExpand}
-				style={{
-					color: "var(--vscode-descriptionForeground)",
-					display: "flex",
-					alignItems: "center",
-					padding: "9px 10px",
-					cursor: "pointer",
-					userSelect: "none",
-					WebkitUserSelect: "none",
-					MozUserSelect: "none",
-					msUserSelect: "none",
-					width: "100%",
-					border: "none",
-					background: "transparent",
-					textAlign: "left",
-				}}
-				type="button">
+			<button {...buttonProps}>
 				<span>/</span>
 				<span
 					style={{

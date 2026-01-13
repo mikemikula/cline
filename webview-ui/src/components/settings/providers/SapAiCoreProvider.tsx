@@ -4,6 +4,7 @@ import { VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useEffect, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ModelsServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { DebouncedTextField } from "../common/DebouncedTextField"
 import { ModelInfoView } from "../common/ModelInfoView"
 import SapAiCoreModelPicker from "../SapAiCoreModelPicker"
@@ -218,8 +219,8 @@ export const SapAiCoreProvider = ({ showModelOptions, isPopup, currentMode }: Sa
 							<div className="text-xs text-(--vscode-errorForeground)">
 								{modelError}
 								<button
-									className="ml-2 text-[11px] px-1.5 py-0.5 bg-(--vscode-button-background) text-(--vscode-button-foreground) border-none rounded-sm cursor-pointer"
-									onClick={fetchSapAiCoreModels}>
+									{...createBaseButtonProps("Retry fetching models", fetchSapAiCoreModels)}
+									className="ml-2 text-[11px] px-1.5 py-0.5 bg-(--vscode-button-background) text-(--vscode-button-foreground) border-none rounded-sm cursor-pointer">
 									Retry
 								</button>
 							</div>

@@ -1,6 +1,7 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
 import React, { memo, useCallback } from "react"
 import { cn } from "@/lib/utils"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { highlightText } from "./Highlights"
 
 interface StickyUserMessageProps {
@@ -30,20 +31,18 @@ export const StickyUserMessage: React.FC<StickyUserMessageProps> = memo(
 
 		return (
 			<button
-				aria-label={`Scroll to your message: ${messageText}`}
+				{...createBaseButtonProps(`Scroll to your message: ${messageText}`, handleClick)}
 				className={cn(
 					"relative flex items-center px-2.5 pt-2 pb-2 cursor-pointer select-none w-full text-left",
 					"backdrop-blur-sm",
 					"hover:brightness-110",
 					"border-0 bg-transparent",
 				)}
-				onClick={handleClick}
 				style={{
 					backgroundColor: "var(--vscode-badge-background)",
 					borderRadius: "3px",
 				}}
-				title="Click to scroll to your message"
-				type="button">
+				title="Click to scroll to your message">
 				{/* Message text (truncated via CSS text-ellipsis) */}
 				<div
 					className={cn(

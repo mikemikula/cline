@@ -5,6 +5,7 @@ import DynamicTextArea from "react-textarea-autosize"
 import Thumbnails from "@/components/common/Thumbnails"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { CheckpointsServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps, createButtonStyle } from "@/utils/interactiveProps"
 import { highlightText } from "./task-header/Highlights"
 
 interface UserMessageProps {
@@ -87,72 +88,100 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 		}
 	}
 
-	return (
-		<div
-			className="p-2.5 pr-1 my-1 text-badge-foreground rounded-xs"
-			onClick={handleClick}
-			style={{
-				backgroundColor: isEditing ? "unset" : "var(--vscode-badge-background)",
-				whiteSpace: "pre-line",
-				wordWrap: "break-word",
-			}}>
-			{isEditing ? (
-				<>
-					<DynamicTextArea
-						autoFocus
-						onBlur={(e) => handleBlur(e)}
-						onChange={(e) => setEditedText(e.target.value)}
-						onKeyDown={handleKeyDown}
-						ref={textAreaRef}
-						style={{
-							width: "100%",
-							backgroundColor: "var(--vscode-input-background)",
-							color: "var(--vscode-input-foreground)",
-							borderColor: "var(--vscode-input-border)",
-							border: "1px solid",
-							borderRadius: "2px",
-							padding: "6px",
-							fontFamily: "inherit",
-							fontSize: "inherit",
-							lineHeight: "inherit",
-							boxSizing: "border-box",
-							resize: "none",
-							overflowX: "hidden",
-							overflowY: "scroll",
-							scrollbarWidth: "none",
-						}}
-						value={editedText}
-					/>
-					<div style={{ display: "flex", gap: "8px", marginTop: "8px", justifyContent: "flex-end" }}>
-						{!checkpointManagerErrorMessage && (
-							<RestoreButton
-								isPrimary={false}
-								label="Restore All"
-								onClick={handleRestoreWorkspace}
-								ref={restoreAllButtonRef}
-								title="Restore both the chat and workspace files to this checkpoint and send your edited message"
-								type="taskAndWorkspace"
-							/>
-						)}
+	const containerStyle = {
+		backgroundColor: isEditing ? "unset" : "var(--vscode-badge-background)",
+		color: "var(--vscode-badge-foreground)",
+		borderRadius: "3px",
+		whiteSpace: "pre-line" as const,
+		wordWrap: "break-word" as const,
+	}
+
+	const thumbnails = ((images && images.length > 0) || (files && files.length > 0)) && (
+		<Thumbnails files={files ?? []} images={images ?? []} style={{ marginTop: "8px" }} />
+	)
+
+	// When editing, render a div with textarea (can't nest interactive elements in button)
+	if (isEditing) {
+		return (
+			<div className="py-2 px-2.5" style={containerStyle}>
+				<DynamicTextArea
+					autoFocus
+					onBlur={(e) => handleBlur(e)}
+					onChange={(e) => setEditedText(e.target.value)}
+					onKeyDown={handleKeyDown}
+					ref={textAreaRef}
+					style={{
+						width: "100%",
+						backgroundColor: "var(--vscode-input-background)",
+						color: "var(--vscode-input-foreground)",
+						borderColor: "var(--vscode-input-border)",
+						border: "1px solid",
+						borderRadius: "2px",
+						padding: "6px",
+						fontFamily: "inherit",
+						fontSize: "inherit",
+						lineHeight: "inherit",
+						boxSizing: "border-box",
+						resize: "none",
+						overflowX: "hidden",
+						overflowY: "scroll",
+						scrollbarWidth: "none",
+					}}
+					value={editedText}
+				/>
+				<div style={{ display: "flex", gap: "8px", marginTop: "8px", justifyContent: "flex-end" }}>
+					{!checkpointManagerErrorMessage && (
 						<RestoreButton
-							isPrimary={true}
-							label="Restore Chat"
+							isPrimary={false}
+							label="Restore All"
 							onClick={handleRestoreWorkspace}
-							ref={restoreChatButtonRef}
-							title="Restore just the chat to this checkpoint and send your edited message"
-							type="task"
+							ref={restoreAllButtonRef}
+							title="Restore both the chat and workspace files to this checkpoint and send your edited message"
+							type="taskAndWorkspace"
 						/>
-					</div>
-				</>
-			) : (
-				<span className="ph-no-capture text-sm" style={{ display: "block" }}>
-					{highlightedText}
-				</span>
-			)}
-			{((images && images.length > 0) || (files && files.length > 0)) && (
-				<Thumbnails files={files ?? []} images={images ?? []} style={{ marginTop: "8px" }} />
-			)}
-		</div>
+					)}
+					<RestoreButton
+						isPrimary={true}
+						label="Restore Chat"
+						onClick={handleRestoreWorkspace}
+						ref={restoreChatButtonRef}
+						title="Restore just the chat to this checkpoint and send your edited message"
+						type="task"
+					/>
+				</div>
+				{thumbnails}
+			</div>
+		)
+	}
+
+	// When not editing, render clickable content
+	// When thumbnails exist, use a div wrapper to avoid nested buttons (invalid HTML)
+	// Thumbnails contain their own button elements for opening images/files
+	if (thumbnails) {
+		return (
+			<div className="py-2 px-2.5" style={containerStyle}>
+				<button
+					{...createBaseButtonProps("Click to edit message", handleClick)}
+					style={createButtonStyle.reset({ cursor: "pointer", textAlign: "left", width: "100%" })}>
+					<span className="ph-no-capture text-sm" style={{ display: "block" }}>
+						{highlightedText}
+					</span>
+				</button>
+				{thumbnails}
+			</div>
+		)
+	}
+
+	// No thumbnails - render as single button element
+	return (
+		<button
+			{...createBaseButtonProps("Click to edit message", handleClick)}
+			className="py-2 px-2.5"
+			style={createButtonStyle.reset({ ...containerStyle, cursor: "pointer", textAlign: "left", width: "100%" })}>
+			<span className="ph-no-capture text-sm" style={{ display: "block" }}>
+				{highlightedText}
+			</span>
+		</button>
 	)
 }
 
@@ -171,27 +200,26 @@ const RestoreButton = forwardRef<HTMLButtonElement, RestoreButtonProps>(({ type,
 		onClick(type)
 	}
 
-	return (
-		<button
-			onClick={handleClick}
-			ref={ref}
-			style={{
-				backgroundColor: isPrimary
-					? "var(--vscode-button-background)"
-					: "var(--vscode-button-secondaryBackground, var(--vscode-descriptionForeground))",
-				color: isPrimary
-					? "var(--vscode-button-foreground)"
-					: "var(--vscode-button-secondaryForeground, var(--vscode-foreground))",
-				border: "none",
-				padding: "4px 8px",
-				borderRadius: "2px",
-				fontSize: "9px",
-				cursor: "pointer",
-			}}
-			title={title}>
-			{label}
-		</button>
-	)
+	const buttonProps = {
+		...createBaseButtonProps(label, handleClick),
+		ref,
+		title,
+		style: {
+			backgroundColor: isPrimary
+				? "var(--vscode-button-background)"
+				: "var(--vscode-button-secondaryBackground, var(--vscode-descriptionForeground))",
+			color: isPrimary
+				? "var(--vscode-button-foreground)"
+				: "var(--vscode-button-secondaryForeground, var(--vscode-foreground))",
+			border: "none",
+			padding: "4px 8px",
+			borderRadius: "2px",
+			fontSize: "9px",
+			cursor: "pointer",
+		},
+	}
+
+	return <button {...buttonProps}>{label}</button>
 })
 
 export default UserMessage

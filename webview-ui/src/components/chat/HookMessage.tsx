@@ -2,6 +2,7 @@ import { ClineMessage } from "@shared/ExtensionMessage"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { memo, useMemo, useState } from "react"
 import { TaskServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { CHAT_ROW_EXPANDED_BG_COLOR } from "../common/CodeBlock"
 import { HOOK_OUTPUT_STRING } from "./constants"
 
@@ -221,13 +222,12 @@ const HookMessage = memo(({ message, CommandOutput }: HookMessageProps) => {
 					</div>
 					{isRunning && metadata.hookName !== "TaskCancel" && metadata.hookName !== "TaskComplete" && (
 						<button
-							onClick={(e) => {
+							{...createBaseButtonProps("Abort task", (e) => {
 								e.stopPropagation()
-								// Cancel the task - cancelling a hook always cancels the entire task
 								TaskServiceClient.cancelTask(EmptyRequest.create({})).catch((err) =>
 									console.error("Failed to cancel task:", err),
 								)
-							}}
+							})}
 							onMouseEnter={(e) => {
 								e.currentTarget.style.background = "var(--vscode-button-secondaryHoverBackground)"
 							}}

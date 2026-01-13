@@ -1,4 +1,5 @@
 import React from "react"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { QuickWinTask } from "./quickWinTasks"
 
 interface QuickWinCardProps {
@@ -31,10 +32,8 @@ const renderIcon = (iconName?: string) => {
 const QuickWinCard: React.FC<QuickWinCardProps> = ({ task, onExecute }) => {
 	return (
 		<button
-			aria-label={`Start task: ${task.title}`}
-			className="flex items-center mb-2 py-0 px-5 space-x-3 rounded-full cursor-pointer group transition-colors duration-150 ease-in-out bg-white/2 border border-(--vscode-panel-border) hover:bg-(--vscode-list-hoverBackground) w-full text-left"
-			onClick={onExecute}
-			type="button">
+			{...createBaseButtonProps(`Start task: ${task.title}`, onExecute)}
+			className="flex items-center mb-2 py-0 px-5 space-x-3 rounded-full cursor-pointer group transition-colors duration-150 ease-in-out bg-white/2 border border-(--vscode-panel-border) hover:bg-(--vscode-list-hoverBackground) w-full text-left">
 			<div className="shrink-0 flex items-center justify-center w-6 h-6 text-(--vscode-icon-foreground)">
 				{renderIcon(task.icon)}
 			</div>

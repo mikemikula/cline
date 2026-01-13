@@ -1,34 +1,7 @@
 import { RefObject, useEffect, useRef } from "react"
+import { getFocusableElements } from "./interactiveProps"
 
-/**
- * Utility to get all focusable elements within a container
- * @param container - The container element to search within
- * @param prioritizeInputs - Whether to sort inputs before buttons (useful for search modals)
- * @returns Array of focusable HTMLElements
- */
-export function getFocusableElements(container: HTMLElement, prioritizeInputs = true): HTMLElement[] {
-	const selector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-	const elements = Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
-		(el) => !el.hasAttribute("disabled") && !el.hasAttribute("aria-hidden"),
-	)
-
-	if (!prioritizeInputs) {
-		return elements
-	}
-
-	// Sort to prioritize inputs (for search fields, etc.)
-	return elements.sort((a, b) => {
-		const aIsInput = a.tagName === "INPUT" || a.tagName === "TEXTAREA"
-		const bIsInput = b.tagName === "INPUT" || b.tagName === "TEXTAREA"
-		if (aIsInput && !bIsInput) {
-			return -1
-		}
-		if (!aIsInput && bIsInput) {
-			return 1
-		}
-		return 0
-	})
-}
+export { getFocusableElements } from "./interactiveProps"
 
 /**
  * Hook to trap focus within a container (typically a modal)

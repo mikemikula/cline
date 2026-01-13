@@ -1,5 +1,6 @@
 import { useRef, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { createBaseButtonProps, createToggleButtonProps } from "@/utils/interactiveProps"
 import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
 import AutoApproveModal from "./AutoApproveModal"
 import { ACTION_METADATA } from "./constants"
@@ -103,10 +104,8 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 					<div className="text-muted-foreground text-xs">
 						YOLO mode is enabled.{" "}
 						<button
-							aria-label="Disable YOLO mode in Settings"
-							className="underline cursor-pointer hover:text-foreground bg-transparent border-0 p-0 text-inherit"
-							onClick={handleNavigateToFeatures}
-							type="button">
+							{...createBaseButtonProps("Disable YOLO mode in Settings", handleNavigateToFeatures)}
+							className="underline cursor-pointer hover:text-foreground bg-transparent border-0 p-0 text-inherit">
 							Disable it in Settings
 						</button>
 						.
@@ -147,14 +146,13 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 			/>
 
 			<button
-				aria-expanded={isModalVisible}
-				aria-label={isModalVisible ? "Close auto-approve settings" : "Open auto-approve settings"}
+				{...createToggleButtonProps(
+					isModalVisible,
+					() => setIsModalVisible((prev) => !prev),
+					isModalVisible ? "Close auto-approve settings" : "Open auto-approve settings",
+				)}
 				className="group cursor-pointer pt-3 pb-3.5 pr-2 px-3.5 flex items-center justify-between gap-0 w-full text-left bg-transparent border-0"
-				onClick={() => {
-					setIsModalVisible((prev) => !prev)
-				}}
-				ref={buttonRef}
-				type="button">
+				ref={buttonRef}>
 				<div className="flex flex-nowrap items-center gap-1 min-w-0 flex-1">
 					<span className="whitespace-nowrap">Auto-approve:</span>
 					{getEnabledActionsText()}

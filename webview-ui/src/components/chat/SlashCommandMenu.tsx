@@ -2,6 +2,7 @@ import { type SlashCommand } from "@shared/slashCommands"
 import React, { useCallback, useEffect, useRef } from "react"
 import ScreenReaderAnnounce from "@/components/common/ScreenReaderAnnounce"
 import { useMenuAnnouncement } from "@/hooks/useMenuAnnouncement"
+import { createListboxOptionProps, createListboxProps } from "@/utils/interactiveProps"
 import { getMatchingSlashCommands } from "@/utils/slash-commands"
 
 interface SlashCommandMenuProps {
@@ -92,17 +93,22 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 					const itemIndex = index + indexOffset
 					return (
 						<div
-							aria-selected={itemIndex === selectedIndex}
+							{...createListboxOptionProps(
+								`/${command.name}`,
+								itemIndex === selectedIndex,
+								`slash-command-menu-item-${itemIndex}`,
+								() => handleClick(command),
+							)}
 							className={`slash-command-menu-item py-2 px-3 cursor-pointer flex flex-col border-b border-(--vscode-editorGroup-border) ${
 								itemIndex === selectedIndex
 									? "bg-(--vscode-quickInputList-focusBackground) text-(--vscode-quickInputList-focusForeground)"
 									: ""
 							} hover:bg-(--vscode-list-hoverBackground)`}
-							id={`slash-command-menu-item-${itemIndex}`}
 							key={command.name}
-							onClick={() => handleClick(command)}
+							onFocus={() => setSelectedIndex(itemIndex)}
 							onMouseEnter={() => setSelectedIndex(itemIndex)}
-							role="option">
+							role="option"
+							tabIndex={0}>
 							<div className="font-bold whitespace-nowrap overflow-hidden text-ellipsis">
 								<span className="ph-no-capture">/{command.name}</span>
 							</div>
@@ -122,14 +128,16 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 		<div
 			className="absolute bottom-[calc(100%-10px)] left-[15px] right-[15px] overflow-x-hidden z-1000"
 			data-testid="slash-commands-menu"
-			onMouseDown={onMouseDown}>
+			onMouseDown={onMouseDown}
+			role="presentation">
 			<ScreenReaderAnnounce message={announcement} />
 			<div
-				aria-activedescendant={filteredCommands.length > 0 ? `slash-command-menu-item-${selectedIndex}` : undefined}
-				aria-label="Slash commands"
+				{...createListboxProps(
+					"Slash commands",
+					filteredCommands.length > 0 ? `slash-command-menu-item-${selectedIndex}` : undefined,
+				)}
 				className="bg-(--vscode-dropdown-background) border border-(--vscode-editorGroup-border) rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
-				role="listbox"
 				style={{ maxHeight: "min(200px, calc(50vh))", overscrollBehavior: "contain" }}>
 				{filteredCommands.length > 0 ? (
 					<>
@@ -137,7 +145,15 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 						{renderCommandSection(workflowCommands, "Workflow Commands", defaultCommands.length, false)}
 					</>
 				) : (
-					<div aria-selected="false" className="py-2 px-3 cursor-default flex flex-col" role="option">
+					<div
+						{...createListboxOptionProps(
+							"No matching commands found",
+							false,
+							"slash-menu-no-results",
+							() => {},
+							true,
+						)}
+						className="py-2 px-3 cursor-default flex flex-col">
 						<div className="text-[0.85em] text-(--vscode-descriptionForeground)">No matching commands found</div>
 					</div>
 				)}

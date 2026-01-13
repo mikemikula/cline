@@ -2,6 +2,7 @@ import { TelemetrySettingEnum, TelemetrySettingRequest } from "@shared/proto/cli
 import { useCallback } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps, createIconButtonProps } from "@/utils/interactiveProps"
 
 const telemetryRequest = TelemetrySettingRequest.create({
 	setting: TelemetrySettingEnum.ENABLED,
@@ -30,10 +31,8 @@ export const TelemetryBanner: React.FC = () => {
 			<p className="m-0">
 				<span>You can turn this setting off in </span>
 				<button
-					aria-label="Open settings"
-					className="text-link cursor-pointer bg-transparent border-0 p-0 font-inherit"
-					onClick={handleOpenSettings}
-					type="button">
+					{...createBaseButtonProps("Open settings", handleOpenSettings)}
+					className="text-link cursor-pointer bg-transparent border-0 p-0 font-inherit">
 					settings
 				</button>
 				.
@@ -41,10 +40,8 @@ export const TelemetryBanner: React.FC = () => {
 
 			{/* Close button */}
 			<button
-				aria-label="Close banner and enable telemetry"
-				className="absolute top-3 right-3 opacity-70 hover:opacity-100 cursor-pointer border-0 bg-transparent p-0 text-inherit"
-				onClick={handleClose}
-				type="button">
+				{...createIconButtonProps("Close banner and enable telemetry", handleClose)}
+				className="absolute top-3 right-3 opacity-70 hover:opacity-100 cursor-pointer border-0 bg-transparent p-0 text-inherit">
 				✕
 			</button>
 		</div>

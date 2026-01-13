@@ -11,6 +11,7 @@ import styled from "styled-components"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import PopupModalContainer from "@/components/common/PopupModalContainer"
 import { useModal } from "@/utils/focusManagement"
+import { createButtonStyle, createIconButtonProps, createInteractiveDivModalTriggerProps } from "@/utils/interactiveProps"
 
 const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
@@ -66,28 +67,16 @@ interface ModelItem {
 
 // Star icon for favorites (only for openrouter/vercel-ai-gateway providers)
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
-	return (
-		<button
-			aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-			onClick={onClick}
-			style={{
-				cursor: "pointer",
-				color: isFavorite ? "var(--vscode-terminal-ansiYellow)" : "var(--vscode-descriptionForeground)",
-				marginLeft: "8px",
-				fontSize: "14px",
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				userSelect: "none",
-				WebkitUserSelect: "none",
-				border: "none",
-				background: "transparent",
-				padding: 0,
-			}}
-			type="button">
-			{isFavorite ? "★" : "☆"}
-		</button>
-	)
+	const buttonProps = {
+		...createIconButtonProps(isFavorite ? "Remove from favorites" : "Add to favorites", onClick),
+		style: createButtonStyle.icon({
+			color: isFavorite ? "var(--vscode-terminal-ansiYellow)" : "var(--vscode-descriptionForeground)",
+			marginLeft: "8px",
+			fontSize: "14px",
+		}),
+	}
+
+	return <button {...buttonProps}>{isFavorite ? "★" : "☆"}</button>
 }
 
 const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChange, currentMode, children }) => {
@@ -546,7 +535,10 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 	return (
 		<>
 			{/* Trigger wrapper */}
-			<div onClick={handleTriggerClick} ref={triggerRef} style={{ cursor: "pointer", display: "inline", minWidth: 0 }}>
+			<div
+				{...createInteractiveDivModalTriggerProps("Open model picker", handleTriggerClick, isOpen)}
+				ref={triggerRef}
+				style={{ cursor: "pointer", display: "inline", minWidth: 0 }}>
 				{children}
 			</div>
 

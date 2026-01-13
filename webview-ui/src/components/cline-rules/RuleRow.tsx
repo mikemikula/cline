@@ -2,6 +2,7 @@ import { StringRequest } from "@shared/proto/cline/common"
 import { DeleteSkillRequest, RuleFileRequest } from "@shared/proto/index.cline"
 import { REMOTE_URI_SCHEME } from "@shared/remote-config/constants"
 import { EyeIcon, InfoIcon, PenIcon, Trash2Icon } from "lucide-react"
+import { useId } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -38,6 +39,7 @@ const RuleRow: React.FC<{
 	alwaysEnabled?: boolean
 	onDeleteSkill?: () => void
 }> = ({ rulePath, enabled, isGlobal, toggleRule, ruleType, isRemote = false, alwaysEnabled = false, onDeleteSkill }) => {
+	const iconId = useId()
 	const displayName = getDisplayNameFromPath(rulePath)
 	const skillDisplayName = getSkillDisplayNameFromSkillMdPath(rulePath)
 
@@ -50,11 +52,14 @@ const RuleRow: React.FC<{
 			case "cursor":
 				return (
 					<svg
+						aria-labelledby={iconId}
 						height="16"
+						role="img"
 						style={{ verticalAlign: "middle" }}
 						viewBox="0 0 24 24"
 						width="16"
 						xmlns="http://www.w3.org/2000/svg">
+						<title id={iconId}>Cursor rule</title>
 						<g fill="none" stroke="currentColor" strokeWidth="1.2">
 							<path d="M12 4L5 8l7 4 7-4-7-4z" fill="rgba(255,255,255,0.2)" />
 							<path d="M5 8v8l7 4v-8L5 8z" fill="rgba(255,255,255,0.1)" />
@@ -68,11 +73,14 @@ const RuleRow: React.FC<{
 			case "windsurf":
 				return (
 					<svg
+						aria-labelledby={iconId}
 						height="16"
+						role="img"
 						style={{ verticalAlign: "middle" }}
 						viewBox="0 0 24 24"
 						width="16"
 						xmlns="http://www.w3.org/2000/svg">
+						<title id={iconId}>Windsurf rule</title>
 						<g fill="currentColor" stroke="currentColor" strokeWidth="1">
 							<path d="M6 18L16 5L14 18H6z" fill="currentColor" />
 							<line strokeWidth="1.5" x1="14" x2="16" y1="18" y2="5" />
@@ -84,11 +92,14 @@ const RuleRow: React.FC<{
 			case "agents":
 				return (
 					<svg
+						aria-labelledby={iconId}
 						height="16"
+						role="img"
 						style={{ verticalAlign: "middle" }}
 						viewBox="0 0 24 24"
 						width="16"
 						xmlns="http://www.w3.org/2000/svg">
+						<title id={iconId}>Agents rule</title>
 						<g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
 							<circle cx="12" cy="8" r="3" />
 							<path d="M12 14c-4 0-6 2-6 4v2h12v-2c0-2-2-4-6-4z" />

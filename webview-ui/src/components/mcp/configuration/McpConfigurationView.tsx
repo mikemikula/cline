@@ -32,8 +32,12 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	// Build array of visible tabs in order
 	const visibleTabs = useMemo(() => {
 		const tabs: Array<{ id: McpViewTab; ref: React.RefObject<HTMLButtonElement> }> = []
-		if (showMarketplace) tabs.push({ id: "marketplace", ref: marketplaceTabRef })
-		if (showRemoteServers) tabs.push({ id: "addRemote", ref: remoteServersTabRef })
+		if (showMarketplace) {
+			tabs.push({ id: "marketplace", ref: marketplaceTabRef })
+		}
+		if (showRemoteServers) {
+			tabs.push({ id: "addRemote", ref: remoteServersTabRef })
+		}
 		tabs.push({ id: "configure", ref: configureTabRef })
 		return tabs
 	}, [showMarketplace, showRemoteServers])
@@ -52,7 +56,9 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 
 		// Find current tab index
 		const currentIndex = visibleTabs.findIndex((tab) => tab.id === activeTab)
-		if (currentIndex === -1) return
+		if (currentIndex === -1) {
+			return
+		}
 
 		// Calculate next index with wraparound
 		let nextIndex: number

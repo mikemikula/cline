@@ -1,6 +1,7 @@
 import { mentionRegexGlobal } from "@shared/context-mentions"
 import { StringRequest } from "@shared/proto/cline/common"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createButtonStyle, createLinkButtonProps } from "@/utils/interactiveProps"
 import { validateSlashCommand } from "@/utils/slash-commands"
 
 // Optimized highlighting functions
@@ -39,12 +40,15 @@ export const highlightMentions = (text: string, withShadow = true) => {
 			}
 		} else {
 			result.push(
-				<span
+				<button
+					{...createLinkButtonProps(`Open mention: ${parts[i]}`, () =>
+						FileServiceClient.openMention(StringRequest.create({ value: parts[i] })),
+					)}
 					className={`${withShadow ? "mention-context-highlight-with-shadow" : "mention-context-highlight"} cursor-pointer`}
 					key={`mention-${Math.floor(i / 2)}`}
-					onClick={() => FileServiceClient.openMention(StringRequest.create({ value: parts[i] }))}>
+					style={createButtonStyle.flexReset({ font: "inherit", color: "inherit" })}>
 					@{parts[i]}
-				</span>,
+				</button>,
 			)
 		}
 	}

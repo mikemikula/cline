@@ -3,6 +3,7 @@ import { StringRequest } from "@shared/proto/cline/common"
 import React, { memo, useLayoutEffect, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps, createButtonStyle, createIconButtonProps } from "@/utils/interactiveProps"
 
 interface ThumbnailsProps {
 	images: string[]
@@ -68,23 +69,21 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 					key={`image-${index}`}
 					onMouseEnter={() => setHoveredIndex(`image-${index}`)}
 					onMouseLeave={() => setHoveredIndex(null)}
+					role="presentation"
 					style={{ position: "relative" }}>
-					<img
-						alt={`Thumbnail image-${index + 1}`}
-						onClick={() => handleImageClick(image)}
-						src={image}
-						style={{
-							width: 34,
-							height: 34,
-							objectFit: "cover",
-							borderRadius: 4,
-							cursor: "pointer",
-						}}
-					/>
+					<button
+						{...createBaseButtonProps(`Open image ${index + 1}`, () => handleImageClick(image))}
+						style={createButtonStyle.icon({ width: 34, height: 34 })}>
+						<img
+							alt={`Thumbnail image-${index + 1}`}
+							src={image}
+							style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }}
+						/>
+					</button>
 					{isDeletableImages && hoveredIndex === `image-${index}` && (
-						<div
-							onClick={() => handleDeleteImages(index)}
-							style={{
+						<button
+							{...createIconButtonProps(`Delete image ${index + 1}`, () => handleDeleteImages(index))}
+							style={createButtonStyle.icon({
 								position: "absolute",
 								top: -4,
 								right: -4,
@@ -92,19 +91,13 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 								height: 13,
 								borderRadius: "50%",
 								backgroundColor: "var(--vscode-badge-background)",
-								display: "flex",
 								justifyContent: "center",
-								alignItems: "center",
-								cursor: "pointer",
-							}}>
+							})}>
 							<span
 								className="codicon codicon-close"
-								style={{
-									color: "var(--vscode-foreground)",
-									fontSize: 10,
-									fontWeight: "bold",
-								}}></span>
-						</div>
+								style={{ color: "var(--vscode-foreground)", fontSize: 10, fontWeight: "bold" }}
+							/>
+						</button>
 					)}
 				</div>
 			))}
@@ -117,27 +110,21 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 						key={`file-${index}`}
 						onMouseEnter={() => setHoveredIndex(`file-${index}`)}
 						onMouseLeave={() => setHoveredIndex(null)}
+						role="presentation"
 						style={{ position: "relative" }}>
-						<div
-							onClick={() => handleFileClick(filePath)}
+						<button
+							{...createBaseButtonProps(`Open file: ${fileName}`, () => handleFileClick(filePath))}
 							style={{
+								...createButtonStyle.flexReset(),
 								width: 34,
 								height: 34,
 								borderRadius: 4,
-								cursor: "pointer",
 								backgroundColor: "var(--vscode-editor-background)",
 								border: "1px solid var(--vscode-input-border)",
-								display: "flex",
 								flexDirection: "column",
-								alignItems: "center",
 								justifyContent: "center",
 							}}>
-							<span
-								className="codicon codicon-file"
-								style={{
-									fontSize: 16,
-									color: "var(--vscode-foreground)",
-								}}></span>
+							<span className="codicon codicon-file" style={{ fontSize: 16, color: "var(--vscode-foreground)" }} />
 							<span
 								style={{
 									fontSize: 7,
@@ -151,11 +138,11 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 								title={fileName}>
 								{fileName}
 							</span>
-						</div>
+						</button>
 						{isDeletableFiles && hoveredIndex === `file-${index}` && (
-							<div
-								onClick={() => handleDeleteFiles(index)}
-								style={{
+							<button
+								{...createIconButtonProps(`Delete file: ${fileName}`, () => handleDeleteFiles(index))}
+								style={createButtonStyle.icon({
 									position: "absolute",
 									top: -4,
 									right: -4,
@@ -163,19 +150,13 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 									height: 13,
 									borderRadius: "50%",
 									backgroundColor: "var(--vscode-badge-background)",
-									display: "flex",
 									justifyContent: "center",
-									alignItems: "center",
-									cursor: "pointer",
-								}}>
+								})}>
 								<span
 									className="codicon codicon-close"
-									style={{
-										color: "var(--vscode-foreground)",
-										fontSize: 10,
-										fontWeight: "bold",
-									}}></span>
-							</div>
+									style={{ color: "var(--vscode-foreground)", fontSize: 10, fontWeight: "bold" }}
+								/>
+							</button>
 						)}
 					</div>
 				)

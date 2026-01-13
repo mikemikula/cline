@@ -12,6 +12,7 @@ import CodeBlock, { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps, createButtonStyle, createToggleButtonProps } from "@/utils/interactiveProps"
 
 interface BrowserSessionRowProps {
 	messages: ClineMessage[]
@@ -104,7 +105,7 @@ const headerStyle: CSSProperties = {
 }
 
 const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
-	const { messages, isLast, onHeightChange, lastModifiedMessage, onSetQuote } = props
+	const { messages, isLast, onHeightChange, lastModifiedMessage } = props
 	const { browserSettings } = useExtensionState()
 	const prevHeightRef = useRef(0)
 	const [maxActionHeight, setMaxActionHeight] = useState(0)
@@ -397,16 +398,15 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 						backgroundColor: "var(--vscode-input-background)",
 					}}>
 					{displayState.screenshot ? (
-						<img
-							alt="Browser screenshot"
-							onClick={() =>
+						<button
+							{...createBaseButtonProps("Open browser screenshot in full size", () =>
 								FileServiceClient.openImage(StringRequest.create({ value: displayState.screenshot })).catch(
 									(err) => console.error("Failed to open image:", err),
-								)
-							}
-							src={displayState.screenshot}
-							style={imgScreenshotStyle}
-						/>
+								),
+							)}
+							style={createButtonStyle.icon({ ...imgScreenshotStyle, cursor: "pointer" })}>
+							<img alt="Browser screenshot" src={displayState.screenshot} style={imgScreenshotStyle} />
+						</button>
 					) : (
 						<div style={noScreenshotContainerStyle}>
 							<span className="codicon codicon-globe" style={noScreenshotIconStyle} />
@@ -425,22 +425,22 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 				</div>
 
 				<div style={consoleLogsContainerStyle}>
-					<div
-						onClick={() => {
-							setConsoleLogsExpanded(!consoleLogsExpanded)
-						}}
-						style={{
-							display: "flex",
-							alignItems: "center",
+					<button
+						{...createToggleButtonProps(
+							consoleLogsExpanded,
+							() => setConsoleLogsExpanded(!consoleLogsExpanded),
+							"Toggle console logs",
+						)}
+						style={createButtonStyle.fullWidthFlex({
 							gap: "4px",
-							// width: "100%",
 							justifyContent: "flex-start",
-							cursor: "pointer",
 							padding: `9px 8px ${consoleLogsExpanded ? 0 : 8}px 8px`,
-						}}>
+							color: "inherit",
+							font: "inherit",
+						})}>
 						<span className={`codicon codicon-chevron-${consoleLogsExpanded ? "down" : "right"}`}></span>
 						<span style={consoleLogsTextStyle}>Console Logs</span>
-					</div>
+					</button>
 					{consoleLogsExpanded && (
 						<CodeBlock source={`${"```"}shell\n${displayState.consoleLogs || "(No new logs)"}\n${"```"}`} />
 					)}

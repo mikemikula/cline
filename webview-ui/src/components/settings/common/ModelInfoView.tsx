@@ -2,6 +2,7 @@ import { geminiModels, ModelInfo } from "@shared/api"
 import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
 import styled from "styled-components"
+import { createToggleButtonProps } from "@/utils/interactiveProps"
 import { ModelDescriptionMarkdown } from "../ModelDescriptionMarkdown"
 import { formatPrice, hasThinkingBudget, supportsBrowserUse, supportsImages, supportsPromptCache } from "../utils/pricingUtils"
 
@@ -240,10 +241,11 @@ export const ModelInfoView = ({
 
 			{/* Collapsible Advanced Section */}
 			<CollapsibleHeader
-				aria-expanded={advancedExpanded}
-				aria-label={advancedExpanded ? "Collapse advanced options" : "Expand advanced options"}
-				onClick={() => setAdvancedExpanded(!advancedExpanded)}
-				type="button">
+				{...createToggleButtonProps(
+					advancedExpanded,
+					() => setAdvancedExpanded(!advancedExpanded),
+					"Toggle advanced options",
+				)}>
 				<CollapsibleArrow $isExpanded={advancedExpanded}>▶</CollapsibleArrow>
 				Advanced
 			</CollapsibleHeader>
