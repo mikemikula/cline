@@ -11,7 +11,7 @@ import styled from "styled-components"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import PopupModalContainer from "@/components/common/PopupModalContainer"
 import { useModal } from "@/utils/focusManagement"
-import { createButtonStyle, createIconButtonProps, createInteractiveDivModalTriggerProps } from "@/utils/interactiveProps"
+import { createButtonStyle, createDivAsModalTriggerProps, createIconButtonProps } from "@/utils/interactiveProps"
 
 const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
@@ -536,7 +536,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		<>
 			{/* Trigger wrapper */}
 			<div
-				{...createInteractiveDivModalTriggerProps("Open model picker", handleTriggerClick, isOpen)}
+				{...createDivAsModalTriggerProps("Open model picker", handleTriggerClick, isOpen)}
 				ref={triggerRef}
 				style={{ cursor: "pointer", display: "inline", minWidth: 0 }}>
 				{children}
