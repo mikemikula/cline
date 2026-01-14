@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 const OpenDiskConversationHistoryButton: React.FC<{
 	taskId?: string
@@ -24,12 +25,11 @@ const OpenDiskConversationHistoryButton: React.FC<{
 			<TooltipContent>Open Conversation History File</TooltipContent>
 			<TooltipTrigger className={cn("flex items-center", className)}>
 				<Button
-					aria-label="Open Disk Conversation History"
-					onClick={(e) => {
+					{...createIconButtonProps("Open Disk Conversation History", (e) => {
 						e.preventDefault()
 						e.stopPropagation()
 						handleOpenDiskConversationHistory()
-					}}
+					})}
 					size="icon"
 					variant="icon">
 					<ArrowDownToLineIcon />

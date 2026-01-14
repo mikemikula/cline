@@ -9,6 +9,7 @@ import { useMount } from "react-use"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
+import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { highlight } from "../history/HistoryView"
 import { ContextWindowSwitcher } from "./common/ContextWindowSwitcher"
 import { ModelInfoView } from "./common/ModelInfoView"
@@ -199,7 +200,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 
 		// Then get search results for non-favorited models
 		const searchResults = searchTerm
-			? highlight(fuse.search(searchTerm), "model-item-highlight").filter((item) => !favoritedModelIds.includes(item.id))
+			? highlight(fuse.search(searchTerm)).filter((item) => !favoritedModelIds.includes(item.id))
 			: searchableItems.filter((item) => !favoritedModelIds.includes(item.id))
 
 		// Combine favorited models with search results
@@ -376,12 +377,16 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								aria-label="Clear search"
-								className="input-icon-button codicon codicon-close"
-								onClick={() => {
+								{...createIconButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
-								}}
+								})}
+								className="input-icon-button codicon codicon-close"
+								onKeyDown={createKeyboardActivationHandler(() => {
+									setSearchTerm("")
+									setIsDropdownVisible(true)
+								})}
+								role="button"
 								slot="end"
 								style={{
 									display: "flex",
@@ -389,6 +394,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 									alignItems: "center",
 									height: "100%",
 								}}
+								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>

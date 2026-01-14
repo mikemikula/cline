@@ -272,18 +272,18 @@ export const OcaProvider = ({ isPopup, currentMode }: OcaProviderProps) => {
 			) : !isAuthenticated ? (
 				<div>
 					<div
-						aria-label="Oracle employment"
 						style={{
 							marginTop: 12,
 							marginBottom: 4,
 						}}>
 						<VSCodeCheckbox
+							aria-label="Oracle employment"
 							checked={ocaMode !== "external"}
 							onChange={(e: any) => {
 								const checked = (e?.target as HTMLInputElement)?.checked
 								handleToggleMode(checked ? "internal" : "external")
 							}}>
-							I’m an Oracle Employee
+							I'm an Oracle Employee
 						</VSCodeCheckbox>
 					</div>
 					<VSCodeButton

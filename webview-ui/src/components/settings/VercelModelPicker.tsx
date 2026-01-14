@@ -7,7 +7,8 @@ import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { highlight } from "../history/HistoryView"
+import { createIconButtonProps } from "@/utils/interactiveProps"
+import { HighlightedText, highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
 import { getModeSpecificFields } from "./utils/providerUtils"
@@ -27,7 +28,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
-	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
@@ -99,7 +100,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const searchResults = searchTerm ? highlight(fuse.search(searchTerm), "model-item-highlight") : searchableItems
+		const searchResults = searchTerm ? highlight(fuse.search(searchTerm)) : searchableItems
 
 		return searchResults
 	}, [searchableItems, searchTerm, fuse])
@@ -210,13 +211,12 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 						}}
 						value={searchTerm}>
 						{searchTerm && (
-							<div
-								aria-label="Clear search"
-								className="input-icon-button codicon codicon-close"
-								onClick={() => {
+							<button
+								{...createIconButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
-								}}
+								})}
+								className="input-icon-button codicon codicon-close"
 								slot="end"
 								style={{
 									display: "flex",
@@ -224,27 +224,35 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 									alignItems: "center",
 									height: "100%",
 								}}
+								type="button"
 							/>
 						)}
 					</VSCodeTextField>
 					{isDropdownVisible && (
 						<DropdownList ref={dropdownListRef}>
 							{modelSearchResults.length > 0 ? (
-								modelSearchResults.map((item, index) => (
-									<DropdownItem
-										isSelected={index === selectedIndex}
-										key={item.id}
-										onClick={() => {
-											handleModelChange(item.id)
-											setIsDropdownVisible(false)
-										}}
-										onMouseEnter={() => setSelectedIndex(index)}
-										ref={(el) => (itemRefs.current[index] = el)}>
-										<span dangerouslySetInnerHTML={{ __html: item.html }} />
-									</DropdownItem>
-								))
+								modelSearchResults.map((item, index) => {
+									const elRef = (el: HTMLButtonElement | null) => {
+										itemRefs.current[index] = el
+									}
+									return (
+										<DropdownItem
+											as="button"
+											isSelected={index === selectedIndex}
+											key={item.id}
+											onClick={() => {
+												handleModelChange(item.id)
+												setIsDropdownVisible(false)
+											}}
+											onMouseEnter={() => setSelectedIndex(index)}
+											ref={elRef}
+											type="button">
+											<HighlightedText regions={item._highlightRegions} text={item.id} />
+										</DropdownItem>
+									)
+								})
 							) : (
-								<DropdownItem isSelected={false}>
+								<DropdownItem as="div" isSelected={false}>
 									<span style={{ color: "var(--vscode-descriptionForeground)" }}>
 										{Object.keys(vercelAiGatewayModels).length === 0
 											? "Loading models..."
@@ -258,7 +266,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 			</div>
 
 			{hasInfo && selectedModelInfo ? (
-				<>
+				<div>
 					{showBudgetSlider && <ThinkingBudgetSlider currentMode={currentMode} />}
 
 					<ModelInfoView
@@ -267,7 +275,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 						selectedModelId={selectedModelId}
 						showProviderRouting={false}
 					/>
-				</>
+				</div>
 			) : (
 				<p
 					style={{
@@ -276,19 +284,19 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 						color: "var(--vscode-descriptionForeground)",
 					}}>
 					{Object.keys(vercelAiGatewayModels).length === 0 ? (
-						<>
+						<span>
 							Enter your Vercel AI Gateway API key above to load available models. You can get an API key from{" "}
 							<VSCodeLink
 								href="https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai"
 								style={{ display: "inline", fontSize: "inherit" }}>
 								Vercel AI Gateway.
 							</VSCodeLink>
-						</>
+						</span>
 					) : (
-						<>
+						<span>
 							Select a model from the dropdown above. The extension fetches available models from your Vercel AI
 							Gateway configuration.
-						</>
+						</span>
 					)}
 				</p>
 			)}
@@ -321,12 +329,14 @@ const DropdownList = styled.div`
 	border-bottom-right-radius: 3px;
 `
 
-const DropdownItem = styled.div<{ isSelected: boolean }>`
+const DropdownItem = styled.button<{ isSelected: boolean }>`
 	padding: 5px 10px;
 	cursor: pointer;
 	word-break: break-all;
 	white-space: normal;
-
+	text-align: left;
+	width: 100%;
+	border: none;
 	background-color: ${({ isSelected }) => (isSelected ? "var(--vscode-list-activeSelectionBackground)" : "inherit")};
 
 	&:hover {

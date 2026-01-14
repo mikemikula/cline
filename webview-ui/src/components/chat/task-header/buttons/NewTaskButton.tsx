@@ -2,6 +2,7 @@ import { XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 const NewTaskButton: React.FC<{
 	onClick: () => void
@@ -12,12 +13,11 @@ const NewTaskButton: React.FC<{
 			<TooltipContent side="left">Start a New Task</TooltipContent>
 			<TooltipTrigger className={cn("flex items-center", className)}>
 				<Button
-					aria-label="New Task"
-					onClick={(e) => {
+					{...createIconButtonProps("New Task", (e) => {
 						e.preventDefault()
 						e.stopPropagation()
 						onClick()
-					}}
+					})}
 					size="icon"
 					variant="icon">
 					<XIcon />

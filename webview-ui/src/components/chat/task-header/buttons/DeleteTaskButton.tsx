@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatSize } from "@/utils/format"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 const DeleteTaskButton: React.FC<{
 	taskId?: string
@@ -15,13 +16,12 @@ const DeleteTaskButton: React.FC<{
 		<TooltipContent>{`Delete Task (size: ${taskSize ? formatSize(taskSize) : "--"})`}</TooltipContent>
 		<TooltipTrigger className={cn("flex items-center", className)}>
 			<Button
-				aria-label="Delete Task"
-				disabled={!taskId}
-				onClick={(e) => {
+				{...createIconButtonProps("Delete Task", (e) => {
 					e.preventDefault()
 					e.stopPropagation()
 					taskId && TaskServiceClient.deleteTasksWithIds(StringArrayRequest.create({ value: [taskId] }))
-				}}
+				})}
+				disabled={!taskId}
 				size="xs"
 				variant="icon">
 				<TrashIcon />

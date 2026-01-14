@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { createBaseButtonProps, createToggleButtonProps } from "@/utils/interactiveProps"
+import { createBaseButtonProps, createModalTriggerButtonProps } from "@/utils/interactiveProps"
 import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
 import AutoApproveModal from "./AutoApproveModal"
 import { ACTION_METADATA } from "./constants"
@@ -146,11 +146,12 @@ const AutoApproveBar = ({ style }: AutoApproveBarProps) => {
 			/>
 
 			<button
-				{...createToggleButtonProps(
-					isModalVisible,
-					() => setIsModalVisible((prev) => !prev),
+				{...createModalTriggerButtonProps(
 					isModalVisible ? "Close auto-approve settings" : "Open auto-approve settings",
+					() => setIsModalVisible((prev) => !prev),
+					{ modalId: "auto-approve-modal", popupType: "dialog" },
 				)}
+				aria-expanded={isModalVisible}
 				className="group cursor-pointer pt-3 pb-3.5 pr-2 px-3.5 flex items-center justify-between gap-0 w-full text-left bg-transparent border-0"
 				ref={buttonRef}>
 				<div className="flex flex-nowrap items-center gap-1 min-w-0 flex-1">

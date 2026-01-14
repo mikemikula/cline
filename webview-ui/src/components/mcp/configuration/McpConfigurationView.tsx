@@ -3,11 +3,12 @@ import { EmptyRequest } from "@shared/proto/cline/common"
 import { McpServers } from "@shared/proto/cline/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { CSSProperties, forwardRef, KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { CSSProperties, forwardRef, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
 import { getEnvironmentColor } from "@/utils/environmentColors"
+import { createTabButtonProps } from "@/utils/interactiveProps"
 import AddRemoteServerForm from "./tabs/add-server/AddRemoteServerForm"
 import ConfigureServersView from "./tabs/installed/ConfigureServersView"
 import McpMarketplaceView from "./tabs/marketplace/McpMarketplaceView"
@@ -43,25 +44,27 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 		setActiveTab(tab)
 	}
 
-	const handleTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-		if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
-			return
-		}
-		e.preventDefault()
-
-		const currentIndex = visibleTabs.findIndex((tab) => tab.id === activeTab)
+	const getTabNavigationHandler = (tabId: McpViewTab) => {
+		const currentIndex = visibleTabs.findIndex((tab) => tab.id === tabId)
 		if (currentIndex === -1) {
-			return
+			return undefined
 		}
 
-		const nextIndex =
-			e.key === "ArrowRight"
-				? (currentIndex + 1) % visibleTabs.length
-				: (currentIndex - 1 + visibleTabs.length) % visibleTabs.length
+		const onNext = () => {
+			const nextIndex = (currentIndex + 1) % visibleTabs.length
+			const nextTab = visibleTabs[nextIndex]
+			setActiveTab(nextTab.id)
+			nextTab.ref.current?.focus()
+		}
 
-		const nextTab = visibleTabs[nextIndex]
-		setActiveTab(nextTab.id)
-		nextTab.ref.current?.focus()
+		const onPrev = () => {
+			const prevIndex = (currentIndex - 1 + visibleTabs.length) % visibleTabs.length
+			const prevTab = visibleTabs[prevIndex]
+			setActiveTab(prevTab.id)
+			prevTab.ref.current?.focus()
+		}
+
+		return { onNext, onPrev, orientation: "horizontal" as const }
 	}
 
 	useEffect(() => {
@@ -131,6 +134,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 			<div style={{ flex: 1, overflow: "auto" }}>
 				{/* Tabs container */}
 				<div
+					aria-label="MCP configuration tabs"
 					role="tablist"
 					style={{
 						display: "flex",
@@ -140,26 +144,38 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					}}>
 					{showMarketplace && (
 						<TabButton
-							isActive={activeTab === "marketplace"}
-							onClick={() => handleTabChange("marketplace")}
-							onKeyDown={handleTabKeyDown}
+							{...createTabButtonProps(
+								"Marketplace",
+								activeTab === "marketplace",
+								"marketplace-panel",
+								() => handleTabChange("marketplace"),
+								getTabNavigationHandler("marketplace"),
+							)}
 							ref={marketplaceTabRef}>
 							Marketplace
 						</TabButton>
 					)}
 					{showRemoteServers && (
 						<TabButton
-							isActive={activeTab === "addRemote"}
-							onClick={() => handleTabChange("addRemote")}
-							onKeyDown={handleTabKeyDown}
+							{...createTabButtonProps(
+								"Remote Servers",
+								activeTab === "addRemote",
+								"addRemote-panel",
+								() => handleTabChange("addRemote"),
+								getTabNavigationHandler("addRemote"),
+							)}
 							ref={remoteServersTabRef}>
 							Remote Servers
 						</TabButton>
 					)}
 					<TabButton
-						isActive={activeTab === "configure"}
-						onClick={() => handleTabChange("configure")}
-						onKeyDown={handleTabKeyDown}
+						{...createTabButtonProps(
+							"Configure",
+							activeTab === "configure",
+							"configure-panel",
+							() => handleTabChange("configure"),
+							getTabNavigationHandler("configure"),
+						)}
 						ref={configureTabRef}>
 						Configure
 					</TabButton>
@@ -167,11 +183,29 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 
 				{/* Content container */}
 				<div style={{ width: "100%" }}>
-					{showMarketplace && activeTab === "marketplace" && <McpMarketplaceView />}
-					{showRemoteServers && activeTab === "addRemote" && (
-						<AddRemoteServerForm onServerAdded={() => handleTabChange("configure")} />
+					{showMarketplace && (
+						<div
+							aria-labelledby="marketplace-tab"
+							hidden={activeTab !== "marketplace"}
+							id="marketplace-panel"
+							role="tabpanel">
+							{activeTab === "marketplace" && <McpMarketplaceView />}
+						</div>
 					)}
-					{activeTab === "configure" && <ConfigureServersView />}
+					{showRemoteServers && (
+						<div
+							aria-labelledby="addRemote-tab"
+							hidden={activeTab !== "addRemote"}
+							id="addRemote-panel"
+							role="tabpanel">
+							{activeTab === "addRemote" && (
+								<AddRemoteServerForm onServerAdded={() => handleTabChange("configure")} />
+							)}
+						</div>
+					)}
+					<div aria-labelledby="configure-tab" hidden={activeTab !== "configure"} id="configure-panel" role="tabpanel">
+						{activeTab === "configure" && <ConfigureServersView />}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -200,25 +234,14 @@ const StyledTabButton = styled.button.withConfig({
 
 export const TabButton = forwardRef<
 	HTMLButtonElement,
-	{
+	React.ButtonHTMLAttributes<HTMLButtonElement> & {
 		children: ReactNode
-		isActive: boolean
-		onClick: () => void
-		onKeyDown?: (e: KeyboardEvent<HTMLButtonElement>) => void
+		isActive?: boolean
 		disabled?: boolean
 		style?: CSSProperties
 	}
->(({ children, isActive, onClick, onKeyDown, disabled, style }, ref) => (
-	<StyledTabButton
-		aria-selected={isActive}
-		disabled={disabled}
-		isActive={isActive}
-		onClick={onClick}
-		onKeyDown={onKeyDown}
-		ref={ref}
-		role="tab"
-		style={style}
-		type="button">
+>(({ children, isActive, disabled, style, ...props }, ref) => (
+	<StyledTabButton {...props} disabled={disabled} isActive={isActive ?? false} ref={ref} style={style}>
 		{children}
 	</StyledTabButton>
 ))

@@ -2,7 +2,8 @@ import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
-import { highlight } from "../history/HistoryView"
+import { createIconButtonProps } from "@/utils/interactiveProps"
+import { HighlightedText, highlight } from "../history/HistoryView"
 
 export const OLLAMA_MODEL_PICKER_Z_INDEX = 1_000
 
@@ -23,7 +24,7 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
-	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
@@ -64,7 +65,7 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		return searchTerm ? highlight(fuse.search(searchTerm), "ollama-model-item-highlight") : searchableItems
+		return searchTerm ? highlight(fuse.search(searchTerm)) : searchableItems
 	}, [searchableItems, searchTerm, fuse])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -146,13 +147,12 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 					}}
 					value={searchTerm}>
 					{searchTerm && (
-						<div
-							aria-label="Clear search"
-							className="input-icon-button codicon codicon-close"
-							onClick={() => {
+						<button
+							{...createIconButtonProps("Clear search", () => {
 								handleModelChange("")
 								setIsDropdownVisible(true)
-							}}
+							})}
+							className="input-icon-button codicon codicon-close"
 							slot="end"
 							style={{
 								display: "flex",
@@ -160,24 +160,32 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 								alignItems: "center",
 								height: "100%",
 							}}
+							type="button"
 						/>
 					)}
 				</VSCodeTextField>
 				{isDropdownVisible && modelSearchResults.length > 0 && (
 					<DropdownList ref={dropdownListRef}>
-						{modelSearchResults.map((item, index) => (
-							<DropdownItem
-								isSelected={index === selectedIndex}
-								key={item.id}
-								onClick={() => {
-									handleModelChange(item.id)
-									setIsDropdownVisible(false)
-								}}
-								onMouseEnter={() => setSelectedIndex(index)}
-								ref={(el) => (itemRefs.current[index] = el)}>
-								<span dangerouslySetInnerHTML={{ __html: item.html }} />
-							</DropdownItem>
-						))}
+						{modelSearchResults.map((item, index) => {
+							const elRef = (el: HTMLButtonElement | null) => {
+								itemRefs.current[index] = el
+							}
+							return (
+								<DropdownItem
+									as="button"
+									isSelected={index === selectedIndex}
+									key={item.id}
+									onClick={() => {
+										handleModelChange(item.id)
+										setIsDropdownVisible(false)
+									}}
+									onMouseEnter={() => setSelectedIndex(index)}
+									ref={elRef}
+									type="button">
+									<HighlightedText regions={item._highlightRegions} text={item.id} />
+								</DropdownItem>
+							)
+						})}
 					</DropdownList>
 				)}
 			</DropdownWrapper>
@@ -208,12 +216,14 @@ const DropdownList = styled.div`
 	border-bottom-right-radius: 3px;
 `
 
-const DropdownItem = styled.div<{ isSelected: boolean }>`
+const DropdownItem = styled.button<{ isSelected: boolean }>`
 	padding: 5px 10px;
 	cursor: pointer;
 	word-break: break-all;
 	white-space: normal;
-
+	text-align: left;
+	width: 100%;
+	border: none;
 	background-color: ${({ isSelected }) => (isSelected ? "var(--vscode-list-activeSelectionBackground)" : "inherit")};
 
 	&:hover {

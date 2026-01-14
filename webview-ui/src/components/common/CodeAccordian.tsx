@@ -2,6 +2,7 @@ import { memo, useMemo } from "react"
 import CodeBlock from "@/components/common/CodeBlock"
 import { cn } from "@/lib/utils"
 import { getLanguageFromPath } from "@/utils/getLanguageFromPath"
+import { createToggleButtonProps } from "@/utils/interactiveProps"
 import { Button } from "../ui/button"
 
 interface CodeAccordianProps {
@@ -51,13 +52,11 @@ const CodeAccordian = ({
 		<div className="bg-code overflow-hidden rounded-xs border border-editor-group-border">
 			{(path || isFeedback || isConsoleLogs) && (
 				<Button
-					aria-expanded={isExpanded}
-					aria-label={isExpanded ? "Collapse code block" : "Expand code block"}
+					{...createToggleButtonProps(isExpanded, onToggleExpand, "code block")}
 					className={cn("text-description flex items-center cursor-pointer select-none w-full py-[9px] px-2.5", {
 						"cursor-wait opacity-70": isLoading,
 					})}
 					disabled={isLoading}
-					onClick={onToggleExpand}
 					variant="text">
 					{isFeedback || isConsoleLogs ? (
 						<div className="flex items-center">

@@ -4,6 +4,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import type React from "react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { VirtuosoHandle } from "react-virtuoso"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 import { ButtonActionType, getButtonConfig } from "../../shared/buttonConfig"
 import type { ChatState, MessageHandlers } from "../../types/chatTypes"
 
@@ -133,10 +134,12 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 		return (
 			<div className="flex px-3.5">
 				<VSCodeButton
+					{...createIconButtonProps(
+						showScrollToBottom ? "Scroll to bottom" : "Scroll to top",
+						showScrollToBottom ? handleScrollToBottom : handleScrollToTop,
+					)}
 					appearance="icon"
-					aria-label={showScrollToBottom ? "Scroll to bottom" : "Scroll to top"}
 					className="text-lg text-(--vscode-primaryButton-foreground) bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_55%,transparent)] rounded-[3px] overflow-hidden cursor-pointer flex justify-center items-center flex-1 h-[25px] hover:bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_90%,transparent)] active:bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_70%,transparent)] border-0"
-					onClick={showScrollToBottom ? handleScrollToBottom : handleScrollToTop}
 					onKeyDown={(e) => {
 						if (e.key === "Enter" || e.key === " ") {
 							e.preventDefault()

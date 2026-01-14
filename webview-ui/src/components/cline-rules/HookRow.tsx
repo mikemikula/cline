@@ -4,6 +4,7 @@ import { PenIcon, Trash2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 interface HookRowProps {
 	hookName: string
@@ -72,12 +73,15 @@ const HookRow: React.FC<HookRowProps> = ({
 							style={isWindows ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
 						/>
 					</div>
-					<Button aria-label="Edit hook file" onClick={handleEditClick} size="xs" title="Edit hook file" variant="icon">
+					<Button
+						{...createIconButtonProps("Edit hook file", handleEditClick)}
+						size="xs"
+						title="Edit hook file"
+						variant="icon">
 						<PenIcon />
 					</Button>
 					<Button
-						aria-label="Delete hook file"
-						onClick={handleDeleteClick}
+						{...createIconButtonProps("Delete hook file", handleDeleteClick)}
 						size="xs"
 						title="Delete hook file"
 						variant="icon">

@@ -5,7 +5,7 @@ import { useClickAway } from "react-use"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { FileServiceClient } from "@/services/grpc-client"
-import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
+import { createKeyboardActivationHandler, createToggleButtonProps } from "@/utils/interactiveProps"
 
 interface NewRuleRowProps {
 	isGlobal: boolean
@@ -237,7 +237,13 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 						/>
 
 						<Button
-							aria-label={
+							{...createToggleButtonProps(
+								isExpanded,
+								() => {
+									if (!isExpanded) {
+										setIsExpanded(true)
+									}
+								},
 								isExpanded
 									? ruleType === "skill"
 										? "Create skill"
@@ -246,8 +252,8 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 										? "New workflow file..."
 										: ruleType === "skill"
 											? "New skill..."
-											: "New rule file..."
-							}
+											: "New rule file...",
+							)}
 							className="mx-0.5"
 							onClick={(e) => {
 								e.stopPropagation()

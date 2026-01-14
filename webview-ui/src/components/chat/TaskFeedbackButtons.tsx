@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react"
 import styled from "styled-components"
 import { cn } from "@/lib/utils"
 import { TaskServiceClient } from "@/services/grpc-client"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 interface TaskFeedbackButtonsProps {
 	messageTs: number
@@ -76,10 +77,9 @@ const TaskFeedbackButtons: React.FC<TaskFeedbackButtonsProps> = ({ messageTs, is
 			<ButtonsContainer>
 				<ButtonWrapper>
 					<VSCodeButton
+						{...createIconButtonProps("This was helpful", () => handleFeedback("thumbs_up"))}
 						appearance="icon"
-						aria-label="This was helpful"
 						disabled={feedback !== null}
-						onClick={() => handleFeedback("thumbs_up")}
 						title="This was helpful">
 						<IconWrapper>
 							<span
@@ -90,10 +90,9 @@ const TaskFeedbackButtons: React.FC<TaskFeedbackButtonsProps> = ({ messageTs, is
 				</ButtonWrapper>
 				<ButtonWrapper>
 					<VSCodeButton
+						{...createIconButtonProps("This wasn't helpful", () => handleFeedback("thumbs_down"))}
 						appearance="icon"
-						aria-label="This wasn't helpful"
 						disabled={feedback !== null && feedback !== "thumbs_down"}
-						onClick={() => handleFeedback("thumbs_down")}
 						title="This wasn't helpful">
 						<IconWrapper>
 							<span

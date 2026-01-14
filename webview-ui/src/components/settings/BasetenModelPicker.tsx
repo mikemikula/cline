@@ -3,6 +3,7 @@ import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
+import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
@@ -108,7 +109,7 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 
 	const modelSearchResults = useMemo(() => {
 		const results: { id: string; html: string }[] = debouncedSearchTerm
-			? highlight(fuse.search(debouncedSearchTerm), "model-item-highlight")
+			? highlight(fuse.search(debouncedSearchTerm))
 			: searchableItems
 		return results
 	}, [searchableItems, debouncedSearchTerm, fuse])
@@ -215,13 +216,18 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								aria-label="Clear search"
-								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
-								onClick={() => {
+								{...createIconButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
-								}}
+								})}
+								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
+								onKeyDown={createKeyboardActivationHandler(() => {
+									setSearchTerm("")
+									setIsDropdownVisible(true)
+								})}
+								role="button"
 								slot="end"
+								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>

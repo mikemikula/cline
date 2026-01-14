@@ -2,13 +2,76 @@ import type { ApiConfiguration, OcaModelInfo } from "@shared/api"
 import { Mode } from "@shared/storage/types"
 import { VSCodeButton, VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import DOMPurify from "dompurify"
-import React, { useCallback, useMemo, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useFocusTrap } from "@/utils/focusManagement"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { VSC_BUTTON_BACKGROUND, VSC_BUTTON_FOREGROUND, VSC_DESCRIPTION_FOREGROUND, VSC_FOREGROUND } from "@/utils/vscStyles"
 import { ModelInfoView } from "../common/ModelInfoView"
 import ThinkingBudgetSlider from "../ThinkingBudgetSlider"
 import { normalizeApiConfiguration } from "../utils/providerUtils"
 import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
+
+// Component to safely render sanitized HTML
+const SafeHtml: React.FC<{ html: string }> = ({ html }) => {
+	const [sanitizedHtml, setSanitizedHtml] = useState("")
+
+	useEffect(() => {
+		setSanitizedHtml(DOMPurify.sanitize(html))
+	}, [html])
+
+	// Parse the sanitized HTML and convert to React elements
+	const content = useMemo(() => {
+		if (!sanitizedHtml) {
+			return null
+		}
+
+		const parser = new DOMParser()
+		const doc = parser.parseFromString(sanitizedHtml, "text/html")
+
+		const convertNodeToReact = (node: Node, index: number): React.ReactNode => {
+			if (node.nodeType === Node.TEXT_NODE) {
+				return node.textContent
+			}
+
+			if (node.nodeType === Node.ELEMENT_NODE) {
+				const element = node as Element
+				const tagName = element.tagName.toLowerCase()
+				const props: any = { key: index }
+
+				// Copy attributes
+				Array.from(element.attributes).forEach((attr) => {
+					if (attr.name === "class") {
+						props.className = attr.value
+					} else if (attr.name === "style") {
+						// Parse inline styles
+						const styles: Record<string, string> = {}
+						attr.value.split(";").forEach((style) => {
+							const [key, value] = style.split(":").map((s) => s.trim())
+							if (key && value) {
+								const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+								styles[camelKey] = value
+							}
+						})
+						props.style = styles
+					} else {
+						props[attr.name] = attr.value
+					}
+				})
+
+				// Convert children
+				const children = Array.from(element.childNodes).map((child, i) => convertNodeToReact(child, i))
+
+				return React.createElement(tagName, props, ...children)
+			}
+
+			return null
+		}
+
+		return Array.from(doc.body.childNodes).map((node, i) => convertNodeToReact(node, i))
+	}, [sanitizedHtml])
+
+	return <>{content}</>
+}
 
 export interface OcaModelPickerProps {
 	apiConfiguration: ApiConfiguration | undefined
@@ -267,10 +330,8 @@ const OcaRestrictivePopup: React.FC<{
 	return (
 		<div className="fixed top-0 left-0 w-screen h-screen z-2000 flex items-center justify-center" ref={containerRef}>
 			<button
-				aria-label="Close dialog"
+				{...createBaseButtonProps("Close dialog", onCancel)}
 				className="absolute inset-0 [background:rgba(0,0,0,0.25)] cursor-default"
-				onClick={onCancel}
-				type="button"
 			/>
 			<div
 				aria-labelledby="oca-popup-title"
@@ -284,7 +345,7 @@ const OcaRestrictivePopup: React.FC<{
 					Disclaimer: Prohibited Data Submission
 				</h4>
 				<div className="overflow-y-auto flex-1 pr-2 mb-4 text-[13px] leading-normal text-(--vscode-foreground,#222) mask-[linear-gradient(to_bottom,black_96%,transparent_100%)]">
-					{bannerText && <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(bannerText) }} />}
+					{bannerText && <SafeHtml html={bannerText} />}
 				</div>
 				<div className="text-right">
 					<VSCodeButton

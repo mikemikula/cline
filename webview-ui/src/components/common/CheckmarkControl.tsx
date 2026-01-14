@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { CheckpointsServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps, createToggleButtonProps } from "@/utils/interactiveProps"
 
 interface CheckmarkControlProps {
 	messageTs?: number
@@ -185,9 +186,7 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 				<DottedLine $isCheckedOut={isCheckpointCheckedOut} />
 				<ButtonGroup>
 					<CustomButton
-						$isCheckedOut={isCheckpointCheckedOut}
-						disabled={compareDisabled}
-						onClick={async () => {
+						{...createBaseButtonProps("Compare checkpoint", async () => {
 							setCompareDisabled(true)
 							try {
 								await CheckpointsServiceClient.checkpointDiff(
@@ -200,16 +199,22 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 							} finally {
 								setCompareDisabled(false)
 							}
-						}}
+						})}
+						$isCheckedOut={isCheckpointCheckedOut}
+						disabled={compareDisabled}
 						style={{ cursor: compareDisabled ? "wait" : "pointer" }}>
 						Compare
 					</CustomButton>
 					<DottedLine $isCheckedOut={isCheckpointCheckedOut} small />
 					<div ref={refs.setReference} style={{ position: "relative", marginTop: -2 }}>
 						<CustomButton
+							{...createToggleButtonProps(
+								showRestoreConfirm,
+								() => setShowRestoreConfirm(true),
+								"Restore checkpoint",
+							)}
 							$isCheckedOut={isCheckpointCheckedOut}
-							isActive={showRestoreConfirm}
-							onClick={() => setShowRestoreConfirm(true)}>
+							isActive={showRestoreConfirm}>
 							Restore
 						</CustomButton>
 						{showRestoreConfirm &&
@@ -222,8 +227,8 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 									style={floatingStyles}>
 									<PrimaryRestoreOption>
 										<Button
+											{...createBaseButtonProps("Restore Files & Task", handleRestoreBoth)}
 											disabled={restoreBothDisabled}
-											onClick={handleRestoreBoth}
 											style={{
 												cursor: restoreBothDisabled ? "wait" : "pointer",
 											}}>
@@ -233,7 +238,12 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 										<p>Revert files and clear messages after this point</p>
 									</PrimaryRestoreOption>
 
-									<MoreOptionsToggle onClick={() => setShowMoreOptions(!showMoreOptions)}>
+									<MoreOptionsToggle
+										{...createToggleButtonProps(
+											showMoreOptions,
+											() => setShowMoreOptions(!showMoreOptions),
+											"More restore options",
+										)}>
 										More options
 										<i
 											className={`codicon codicon-chevron-${showMoreOptions ? "up" : "down"}`}
@@ -245,8 +255,8 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 										<AdditionalOptions>
 											<RestoreOption>
 												<Button
+													{...createBaseButtonProps("Restore Files Only", handleRestoreWorkspace)}
 													disabled={restoreWorkspaceDisabled || isCheckpointCheckedOut}
-													onClick={handleRestoreWorkspace}
 													style={{
 														cursor: isCheckpointCheckedOut
 															? "not-allowed"
@@ -265,8 +275,8 @@ export const CheckmarkControl = ({ messageTs, isCheckpointCheckedOut }: Checkmar
 											</RestoreOption>
 											<RestoreOption>
 												<Button
+													{...createBaseButtonProps("Restore Task Only", handleRestoreTask)}
 													disabled={restoreTaskDisabled}
-													onClick={handleRestoreTask}
 													style={{
 														cursor: restoreTaskDisabled ? "wait" : "pointer",
 													}}

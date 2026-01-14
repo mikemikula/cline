@@ -3,7 +3,6 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { memo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { TaskServiceClient } from "@/services/grpc-client"
-import { createBaseButtonProps } from "@/utils/interactiveProps"
 
 type HistoryPreviewProps = {
 	showHistoryView: () => void
@@ -119,9 +118,11 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								.slice(0, 3)
 								.map((item) => (
 									<button
-										{...createBaseButtonProps(`View task: ${item.task}`, () => handleHistorySelect(item.id))}
+										aria-label={`View task: ${item.task}`}
 										className="history-preview-item w-full text-left"
-										key={item.id}>
+										key={item.id}
+										onClick={() => handleHistorySelect(item.id)}
+										type="button">
 										<div className="history-task-content">
 											{item.isFavorited && (
 												<span

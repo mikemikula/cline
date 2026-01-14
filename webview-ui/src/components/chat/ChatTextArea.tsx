@@ -36,7 +36,7 @@ import {
 	shouldShowContextMenu,
 } from "@/utils/context-mentions"
 import { useMetaKeyDetection, useShortcut } from "@/utils/hooks"
-import { createIconButtonProps, createModalTriggerButtonProps } from "@/utils/interactiveProps"
+import { createIconButtonProps, createModalTriggerButtonProps, createToggleButtonProps } from "@/utils/interactiveProps"
 import { isSafari } from "@/utils/platformUtils"
 import {
 	getMatchingSlashCommands,
@@ -1665,8 +1665,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								<TooltipContent>Add Context</TooltipContent>
 								<TooltipTrigger asChild>
 									<VSCodeButton
+										{...createIconButtonProps("Add Context", handleContextButtonClick)}
 										appearance="icon"
-										aria-label="Add Context"
 										className="p-0 m-0 flex items-center"
 										data-testid="context-button"
 										onClick={handleContextButtonClick}>
@@ -1681,8 +1681,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								<TooltipContent>Add Files & Images</TooltipContent>
 								<TooltipTrigger asChild>
 									<VSCodeButton
+										{...createIconButtonProps("Add Files & Images", handleFilesButtonClick)}
 										appearance="icon"
-										aria-label="Add Files & Images"
 										className="p-0 m-0 flex items-center"
 										data-testid="files-button"
 										disabled={shouldDisableFilesAndImages}
@@ -1735,8 +1735,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						</TooltipContent>
 						<TooltipTrigger asChild>
 							<SwitchContainer
-								aria-checked={mode === "act"}
-								aria-label={`Switch to ${mode === "act" ? "Plan" : "Act"} mode`}
+								{...createToggleButtonProps(
+									mode === "act",
+									handleModeToggle,
+									`Switch to ${mode === "act" ? "Plan" : "Act"} mode`,
+								)}
 								data-testid="mode-switch"
 								disabled={false}
 								onClick={onModeToggle}

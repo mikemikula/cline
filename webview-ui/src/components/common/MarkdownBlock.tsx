@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { FileServiceClient, StateServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { WithCopyButton } from "./CopyButton"
 
 /**
@@ -33,15 +34,13 @@ const ActModeHighlight: React.FC = () => {
 
 	return (
 		<button
-			aria-label={isClickable ? "Toggle to Act Mode" : "Already in Act Mode"}
+			{...createBaseButtonProps(isClickable ? "Toggle to Act Mode" : "Already in Act Mode", handleToggle)}
 			className={cn("text-link inline-flex items-center gap-1 bg-transparent border-0 p-0 font-inherit", {
 				"hover:opacity-90 cursor-pointer": isClickable,
 				"cursor-default opacity-60": !isClickable,
 			})}
 			disabled={!isClickable}
-			onClick={handleToggle}
-			title={isClickable ? "Click to toggle to Act Mode" : "Already in Act Mode"}
-			type="button">
+			title={isClickable ? "Click to toggle to Act Mode" : "Already in Act Mode"}>
 			<div className="p-1 rounded-md bg-code flex items-center justify-end w-7 border border-input-border">
 				<div className="rounded-full bg-link w-2 h-2" />
 			</div>

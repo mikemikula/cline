@@ -3,6 +3,7 @@ import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TaskServiceClient } from "@/services/grpc-client"
+import { createBaseButtonProps } from "@/utils/interactiveProps"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 
 // Custom MCP Server Icon component using VSCode codicon
@@ -73,11 +74,10 @@ export const Navbar = () => {
 					<TooltipContent side="bottom">{tab.tooltip}</TooltipContent>
 					<TooltipTrigger asChild>
 						<Button
-							aria-label={tab.tooltip}
+							{...createBaseButtonProps(tab.tooltip, () => tab.navigate())}
 							className="p-0 h-7"
 							data-testid={`tab-${tab.id}`}
 							key={`navbar-button-${tab.id}`}
-							onClick={() => tab.navigate()}
 							size="icon"
 							variant="icon">
 							<tab.icon className="stroke-1 [svg]:size-4" size={18} />

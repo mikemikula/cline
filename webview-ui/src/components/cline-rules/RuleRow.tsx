@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileServiceClient } from "@/services/grpc-client"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 function isWin32Path(filePath: string): boolean {
 	return /^[a-zA-Z]:\\/.test(filePath)
@@ -169,17 +170,15 @@ const RuleRow: React.FC<{
 						title={isDisabled ? "This rule is required and cannot be disabled" : undefined}
 					/>
 					<Button
-						aria-label={isRemote ? "View rule file" : "Edit rule file"}
-						onClick={handleEditClick}
+						{...createIconButtonProps(isRemote ? "View rule file" : "Edit rule file", handleEditClick)}
 						size="xs"
 						title={isRemote ? "View rule file (read-only)" : "Edit rule file"}
 						variant="icon">
 						{isRemote ? <EyeIcon /> : <PenIcon />}
 					</Button>
 					<Button
-						aria-label="Delete rule file"
+						{...createIconButtonProps("Delete rule file", handleDeleteClick)}
 						disabled={isRemote}
-						onClick={handleDeleteClick}
 						size="xs"
 						title="Delete rule file"
 						variant="icon">

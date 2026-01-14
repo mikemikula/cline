@@ -1,6 +1,7 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React from "react"
 import styled from "styled-components"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 const PreviewContainer = styled.div`
 	background-color: var(--vscode-input-background); /* Outer box matches text area */
@@ -78,7 +79,7 @@ const QuotedMessagePreview: React.FC<QuotedMessagePreviewProps> = ({ text, onDis
 			<ContentRow>
 				<ReplyIcon className="codicon codicon-reply"></ReplyIcon>
 				<TextContainer title={text}>{text}</TextContainer>
-				<DismissButton appearance="icon" aria-label="Dismiss quote" onClick={onDismiss}>
+				<DismissButton {...createIconButtonProps("Dismiss quote", onDismiss)} appearance="icon">
 					<span className="codicon codicon-close"></span>
 				</DismissButton>
 			</ContentRow>

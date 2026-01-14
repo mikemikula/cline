@@ -7,6 +7,7 @@ import Fuse from "fuse.js"
 import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import styled from "styled-components"
+import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
 import { highlight } from "../history/HistoryView"
@@ -112,9 +113,7 @@ const RequestyModelPicker: React.FC<RequestyModelPickerProps> = ({ isPopup, base
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const results: { id: string; html: string }[] = searchTerm
-			? highlight(fuse.search(searchTerm), "model-item-highlight")
-			: searchableItems
+		const results: { id: string; html: string }[] = searchTerm ? highlight(fuse.search(searchTerm)) : searchableItems
 		// results.sort((a, b) => a.id.localeCompare(b.id)) NOTE: sorting like this causes ids in objects to be reordered and mismatched
 		return results
 	}, [searchableItems, searchTerm, fuse])
@@ -207,12 +206,16 @@ const RequestyModelPicker: React.FC<RequestyModelPickerProps> = ({ isPopup, base
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								aria-label="Clear search"
-								className="input-icon-button codicon codicon-close"
-								onClick={() => {
+								{...createIconButtonProps("Clear search", () => {
 									handleModelChange("")
 									setIsDropdownVisible(true)
-								}}
+								})}
+								className="input-icon-button codicon codicon-close"
+								onKeyDown={createKeyboardActivationHandler(() => {
+									handleModelChange("")
+									setIsDropdownVisible(true)
+								})}
+								role="button"
 								slot="end"
 								style={{
 									display: "flex",
@@ -220,6 +223,7 @@ const RequestyModelPicker: React.FC<RequestyModelPickerProps> = ({ isPopup, base
 									alignItems: "center",
 									height: "100%",
 								}}
+								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>

@@ -3,6 +3,7 @@ import { CheckIcon, CopyIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 const CopyTaskButton: React.FC<{
 	taskText?: string
@@ -26,12 +27,11 @@ const CopyTaskButton: React.FC<{
 			<TooltipContent side="bottom">Copy Text</TooltipContent>
 			<TooltipTrigger className={cn("flex items-center", className)}>
 				<Button
-					aria-label="Copy"
-					onClick={(e) => {
+					{...createIconButtonProps("Copy", (e) => {
 						e.preventDefault()
 						e.stopPropagation()
 						handleCopy()
-					}}
+					})}
 					size="icon"
 					variant="icon">
 					{copied ? <CheckIcon /> : <CopyIcon />}

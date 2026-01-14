@@ -1,6 +1,7 @@
 import { ChevronsDownUpIcon, FilePlus, FileText, FileX } from "lucide-react"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import { createToggleButtonProps } from "@/utils/interactiveProps"
 
 interface Patch {
 	action: string
@@ -100,11 +101,8 @@ const FileBlock = memo<{ file: Patch; isStreaming: boolean }>(
 		return (
 			<div className="bg-code rounded-xs border border-editor-group-border">
 				<button
-					aria-expanded={isExpanded}
-					aria-label={`${isExpanded ? "Collapse" : "Expand"} ${file.path}`}
-					className="w-full flex items-center gap-2 p-2 bg-code transition-colors rounded-t-xs justify-between cursor-pointer"
-					onClick={() => setIsExpanded((prev) => !prev)}
-					type="button">
+					{...createToggleButtonProps(isExpanded, () => setIsExpanded((prev) => !prev), file.path)}
+					className="w-full flex items-center gap-2 p-2 bg-code transition-colors rounded-t-xs justify-between cursor-pointer">
 					<div className="flex items-center gap-3 flex-1 w-full overflow-hidden">
 						<div className={cn("flex items-center gap-2 w-full", actionStyle.borderClass)}>
 							<ActionIcon className={cn("w-5 h-5", actionStyle.iconClass)} />

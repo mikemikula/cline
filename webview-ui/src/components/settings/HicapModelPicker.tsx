@@ -6,7 +6,8 @@ import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "reac
 import { useMount } from "react-use"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
-import { highlight } from "../history/HistoryView"
+import { createIconButtonProps } from "@/utils/interactiveProps"
+import { HighlightedText, highlight } from "../history/HistoryView"
 import { getModeSpecificFields } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
@@ -15,11 +16,12 @@ export const HICAP_MODEL_PICKER_Z_INDEX = 1_000
 // Star icon for favorites
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
 	return (
-		<div
+		<button
+			{...createIconButtonProps(isFavorite ? "Remove from favorites" : "Add to favorites", onClick)}
 			className={`cursor-pointer ${isFavorite ? "text-[var(--vscode-terminal-ansiBlue)]" : "text-[var(--vscode-descriptionForeground)]"} ml-[8px] text-[16px] flex items-center justify-center select-none`}
-			onClick={onClick}>
+			type="button">
 			{isFavorite ? "★" : "☆"}
-		</div>
+		</button>
 	)
 }
 
@@ -28,7 +30,7 @@ export interface HicapModelPickerProps {
 	currentMode: Mode
 }
 
-const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMode }) => {
+const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ currentMode }) => {
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
 	const { apiConfiguration, favoritedModelIds, hicapModels, refreshHicapModels } = useExtensionState()
 
@@ -37,7 +39,7 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMod
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
-	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
@@ -110,7 +112,7 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMod
 
 		// Then get search results for non-favorited models
 		const searchResults = searchTerm
-			? highlight(fuse.search(searchTerm), "model-item-highlight").filter((item) => !favoritedModelIds.includes(item.id))
+			? highlight(fuse.search(searchTerm)).filter((item) => !favoritedModelIds.includes(item.id))
 			: searchableItems.filter((item) => !favoritedModelIds.includes(item.id))
 
 		// Combine favorited models with search results
@@ -183,13 +185,12 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMod
 						style={{ zIndex: HICAP_MODEL_PICKER_Z_INDEX }}
 						value={searchTerm}>
 						{searchTerm && (
-							<div
-								aria-label="Clear search"
-								className="flex justify-center items-center h-full input-icon-button codicon codicon-close"
-								onClick={() => {
+							<button
+								{...createIconButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
-								}}
+								})}
+								className="flex justify-center items-center h-full input-icon-button codicon codicon-close"
 								slot="end"
 							/>
 						)}
@@ -204,9 +205,12 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMod
 							style={{ zIndex: HICAP_MODEL_PICKER_Z_INDEX - 1 }}>
 							{modelSearchResults.map((item, index) => {
 								const isFavorite = (favoritedModelIds || []).includes(item.id)
+								const elRef = (el: HTMLButtonElement | null) => {
+									itemRefs.current[index] = el
+								}
 								return (
-									<div
-										className={`p-[5px_10px] cursor-pointer break-all whitespace-normal ${
+									<button
+										className={`p-[5px_10px] cursor-pointer break-all whitespace-normal text-left w-full ${
 											index === selectedIndex ? "bg-[var(--vscode-list-activeSelectionBackground)]" : ""
 										} hover:bg-[var(--vscode-list-activeSelectionBackground)]`}
 										key={item.id}
@@ -215,9 +219,10 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMod
 											setIsDropdownVisible(false)
 										}}
 										onMouseEnter={() => setSelectedIndex(index)}
-										ref={(el) => (itemRefs.current[index] = el)}>
-										<div className="flex justify-between items-center [&_.model-item-highlight]:bg-[var(--vscode-editor-findMatchHighlightBackground)] [&_.model-item-highlight]:text-inherit">
-											<span dangerouslySetInnerHTML={{ __html: item.html }} />
+										ref={elRef}
+										type="button">
+										<div className="flex justify-between items-center">
+											<HighlightedText regions={item._highlightRegions} text={item.id} />
 											<StarIcon
 												isFavorite={isFavorite}
 												onClick={(e) => {
@@ -228,7 +233,7 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ isPopup, currentMod
 												}}
 											/>
 										</div>
-									</div>
+									</button>
 								)
 							})}
 						</div>

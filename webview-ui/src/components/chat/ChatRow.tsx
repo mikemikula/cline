@@ -145,7 +145,6 @@ export const ChatRowContent = memo(
 		onSetQuote,
 		onCancelCommand,
 		mode,
-		isRequestInProgress,
 		reasoningContent,
 		responseStarted,
 	}: ChatRowContentProps) => {
@@ -757,23 +756,17 @@ export const ChatRowContent = memo(
 
 						{useMcpServer.type === "use_mcp_tool" && (
 							<div>
-								<div
-									onClick={(e) => e.stopPropagation()}
-									onKeyDown={(e) => e.stopPropagation()}
-									role="presentation">
-									<McpToolRow
-										serverName={useMcpServer.serverName}
-										tool={{
-											name: useMcpServer.toolName || "",
-											description:
-												server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.description ||
-												"",
-											autoApprove:
-												server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove ||
-												false,
-										}}
-									/>
-								</div>
+								<McpToolRow
+									serverName={useMcpServer.serverName}
+									tool={{
+										name: useMcpServer.toolName || "",
+										description:
+											server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.description || "",
+										autoApprove:
+											server?.tools?.find((tool) => tool.name === useMcpServer.toolName)?.autoApprove ||
+											false,
+									}}
+								/>
 								{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
 									<div className="mt-2">
 										<div className="mb-1 opacity-80 uppercase">Arguments</div>

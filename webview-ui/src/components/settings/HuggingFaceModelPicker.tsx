@@ -5,9 +5,10 @@ import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
-import { highlight } from "../history/HistoryView"
+import { HighlightedText, highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
 import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
@@ -25,7 +26,7 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
-	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
 	const handleModelChange = (newModelId: string) => {
@@ -99,7 +100,7 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 
 	const fuse = useMemo(() => {
 		return new Fuse(searchableItems, {
-			keys: ["html"],
+			keys: ["id"],
 			threshold: 0.6,
 			shouldSort: true,
 			isCaseSensitive: false,
@@ -110,9 +111,9 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const results: { id: string; html: string }[] = searchTerm
-			? highlight(fuse.search(searchTerm), "model-item-highlight")
-			: searchableItems
+		const results = searchTerm
+			? highlight(fuse.search(searchTerm))
+			: searchableItems.map((item) => ({ ...item, _highlightRegions: [] }))
 		return results
 	}, [searchTerm, fuse, searchableItems])
 
@@ -183,13 +184,12 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 						placeholder="Search models..."
 						value={searchTerm}>
 						{searchTerm && (
-							<div
-								aria-label="Clear search"
-								className="input-icon-button codicon codicon-close"
-								onClick={() => {
+							<button
+								{...createIconButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
-								}}
+								})}
+								className="input-icon-button codicon codicon-close"
 								slot="end"
 								style={{
 									display: "flex",
@@ -197,6 +197,7 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 									alignItems: "center",
 									height: "100%",
 								}}
+								type="button"
 							/>
 						)}
 					</VSCodeTextField>
@@ -206,24 +207,27 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 								isPopup ? "max-h-[90px]" : "max-h-[200px]"
 							} overflow-y-auto bg-(--vscode-dropdown-background) border border-(--vscode-list-activeSelectionBackground) z-999 rounded-b-[3px]`}
 							ref={dropdownListRef}>
-							{modelSearchResults.map((result, index) => (
-								<div
-									className={`p-[5px_10px] cursor-pointer break-all whitespace-normal ${
-										index === selectedIndex ? "bg-(--vscode-list-activeSelectionBackground)" : ""
-									} hover:bg-(--vscode-list-activeSelectionBackground)`}
-									key={result.id}
-									onClick={() => {
-										handleModelChange(result.id)
-										setIsDropdownVisible(false)
-									}}
-									onMouseEnter={() => setSelectedIndex(index)}
-									ref={(el: HTMLDivElement | null) => (itemRefs.current[index] = el)}>
-									<div
-										className="[&_.model-item-highlight]:bg-(--vscode-editor-findMatchHighlightBackground) [&_.model-item-highlight]:text-inherit"
-										dangerouslySetInnerHTML={{ __html: result.html }}
-									/>
-								</div>
-							))}
+							{modelSearchResults.map((result, index) => {
+								const elRef = (el: HTMLButtonElement | null) => {
+									itemRefs.current[index] = el
+								}
+								return (
+									<button
+										className={`p-[5px_10px] cursor-pointer break-all whitespace-normal text-left w-full ${
+											index === selectedIndex ? "bg-[var(--vscode-list-activeSelectionBackground)]" : ""
+										} hover:bg-[var(--vscode-list-activeSelectionBackground)]`}
+										key={result.id}
+										onClick={() => {
+											handleModelChange(result.id)
+											setIsDropdownVisible(false)
+										}}
+										onMouseEnter={() => setSelectedIndex(index)}
+										ref={elRef}
+										type="button">
+										<HighlightedText regions={result._highlightRegions} text={result.id} />
+									</button>
+								)
+							})}
 						</div>
 					)}
 				</div>

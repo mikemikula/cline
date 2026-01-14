@@ -2,6 +2,7 @@ import { FoldVerticalIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 const CompactTaskButton: React.FC<{
 	className?: string
@@ -12,13 +13,12 @@ const CompactTaskButton: React.FC<{
 			<TooltipContent side="left">Compact Task</TooltipContent>
 			<TooltipTrigger className={cn("flex items-center", className)}>
 				<Button
-					aria-label="Compact Task"
-					className="[&_svg]:size-3"
-					onClick={(e) => {
+					{...createIconButtonProps("Compact Task", (e) => {
 						e.preventDefault()
 						e.stopPropagation()
 						onClick(e)
-					}}
+					})}
+					className="[&_svg]:size-3"
 					size="icon"
 					variant="icon">
 					<FoldVerticalIcon />

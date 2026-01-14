@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
+import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import McpMarketplaceCard from "./McpMarketplaceCard"
 import McpSubmitCard from "./McpSubmitCard"
 
@@ -155,9 +156,10 @@ const McpMarketplaceView = () => {
 					/>
 					{searchQuery && (
 						<div
-							aria-label="Clear search"
+							{...createIconButtonProps("Clear search", () => setSearchQuery(""))}
 							className="codicon codicon-close"
-							onClick={() => setSearchQuery("")}
+							onKeyDown={createKeyboardActivationHandler(() => setSearchQuery(""))}
+							role="button"
 							slot="end"
 							style={{
 								display: "flex",
@@ -166,6 +168,7 @@ const McpMarketplaceView = () => {
 								height: "100%",
 								cursor: "pointer",
 							}}
+							tabIndex={0}
 						/>
 					)}
 				</VSCodeTextField>

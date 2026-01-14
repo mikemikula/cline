@@ -202,6 +202,7 @@ class ImagePreview extends React.Component<
 					{/* Hidden image that we'll use to detect load/error events */}
 					{/\.svg(\?.*)?$/i.test(url) ? (
 						<object
+							aria-label={`SVG from ${getSafeHostname(url)}`}
 							data={DOMPurify.sanitize(url)}
 							onError={this.handleImageError}
 							onLoad={this.handleImageLoad}
@@ -303,7 +304,7 @@ class ImagePreview extends React.Component<
 					</object>
 				) : (
 					<img
-						alt={`Image from ${getSafeHostname(url)}`}
+						alt={`Content from ${getSafeHostname(url)}`}
 						loading="eager"
 						src={DOMPurify.sanitize(url)}
 						style={{

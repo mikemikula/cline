@@ -2,6 +2,7 @@ import { CheckCheckIcon, CopyIcon } from "lucide-react"
 import { forwardRef, useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { createIconButtonProps } from "@/utils/interactiveProps"
 
 interface CopyButtonProps {
 	textToCopy?: string
@@ -52,9 +53,8 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy, onCopy, clas
 
 	return (
 		<Button
-			aria-label={copied ? "Copied" : ariaLabel || "Copy"}
+			{...createIconButtonProps(copied ? "Copied" : ariaLabel || "Copy", handleCopy)}
 			className={cn("scale-90", className)}
-			onClick={handleCopy}
 			size="icon"
 			variant="icon">
 			{copied ? <CheckCheckIcon className="size-2" /> : <CopyIcon className="size-2" />}
@@ -81,7 +81,14 @@ export const WithCopyButton = forwardRef<HTMLDivElement, WithCopyButtonProps>(
 		const hasCopyFunctionality = !!(textToCopy || onCopy)
 
 		return (
-			<div className={cn("group relative w-full", className)} onMouseUp={onMouseUp} ref={ref} style={style} {...props}>
+			// biome-ignore lint/a11y/noStaticElementInteractions: onMouseUp is for text selection detection, not user interaction
+			<div
+				className={cn("group relative w-full", className)}
+				onMouseUp={onMouseUp}
+				ref={ref}
+				role="presentation"
+				style={style}
+				{...props}>
 				{hasCopyFunctionality && (
 					<div
 						className={cn(
