@@ -62,9 +62,6 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy, onCopy, clas
 	)
 }
 
-/**
- * Container component that wraps content with a copy button
- */
 export const WithCopyButton = forwardRef<HTMLDivElement, WithCopyButtonProps>(
 	(
 		{

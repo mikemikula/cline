@@ -23,13 +23,10 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	const showMarketplace = remoteConfigSettings?.mcpMarketplaceEnabled !== false
 	const showRemoteServers = remoteConfigSettings?.blockPersonalRemoteMCPServers !== true
 	const [activeTab, setActiveTab] = useState<McpViewTab>(initialTab || (showMarketplace ? "marketplace" : "configure"))
-
-	// Refs for each tab button to enable focus management
 	const marketplaceTabRef = useRef<HTMLButtonElement>(null)
 	const remoteServersTabRef = useRef<HTMLButtonElement>(null)
 	const configureTabRef = useRef<HTMLButtonElement>(null)
 
-	// Build array of visible tabs in order
 	const visibleTabs = useMemo(() => {
 		const tabs: Array<{ id: McpViewTab; ref: React.RefObject<HTMLButtonElement> }> = []
 		if (showMarketplace) {
@@ -46,29 +43,18 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 		setActiveTab(tab)
 	}
 
-	// Arrow key navigation handler
-	const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-		if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
-			return
-		}
-
+	const handleTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+		if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return
 		e.preventDefault()
 
-		// Find current tab index
 		const currentIndex = visibleTabs.findIndex((tab) => tab.id === activeTab)
-		if (currentIndex === -1) {
-			return
-		}
+		if (currentIndex === -1) return
 
-		// Calculate next index with wraparound
-		let nextIndex: number
-		if (e.key === "ArrowRight") {
-			nextIndex = (currentIndex + 1) % visibleTabs.length
-		} else {
-			nextIndex = (currentIndex - 1 + visibleTabs.length) % visibleTabs.length
-		}
+		const nextIndex =
+			e.key === "ArrowRight"
+				? (currentIndex + 1) % visibleTabs.length
+				: (currentIndex - 1 + visibleTabs.length) % visibleTabs.length
 
-		// Change to next tab and focus it
 		const nextTab = visibleTabs[nextIndex]
 		setActiveTab(nextTab.id)
 		nextTab.ref.current?.focus()
@@ -152,7 +138,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 						<TabButton
 							isActive={activeTab === "marketplace"}
 							onClick={() => handleTabChange("marketplace")}
-							onKeyDown={handleKeyDown}
+							onKeyDown={handleTabKeyDown}
 							ref={marketplaceTabRef}>
 							Marketplace
 						</TabButton>
@@ -161,7 +147,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 						<TabButton
 							isActive={activeTab === "addRemote"}
 							onClick={() => handleTabChange("addRemote")}
-							onKeyDown={handleKeyDown}
+							onKeyDown={handleTabKeyDown}
 							ref={remoteServersTabRef}>
 							Remote Servers
 						</TabButton>
@@ -169,7 +155,7 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					<TabButton
 						isActive={activeTab === "configure"}
 						onClick={() => handleTabChange("configure")}
-						onKeyDown={handleKeyDown}
+						onKeyDown={handleTabKeyDown}
 						ref={configureTabRef}>
 						Configure
 					</TabButton>
