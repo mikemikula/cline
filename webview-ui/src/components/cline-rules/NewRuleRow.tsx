@@ -142,20 +142,24 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 		}
 	}
 
+	const isClickable = !isExpanded && ruleType !== "hook"
+
 	return (
 		<div
 			className={cn("mb-2.5 transition-all duration-300 ease-in-out", {
 				"opacity-100": isExpanded,
 				"opacity-70 hover:opacity-100": !isExpanded,
-				"cursor-pointer": !isExpanded && ruleType !== "hook",
+				"cursor-pointer": isClickable,
 			})}
-			onClick={!isExpanded && ruleType !== "hook" ? () => setIsExpanded(true) : undefined}
-			onKeyDown={
-				!isExpanded && ruleType !== "hook" ? createKeyboardActivationHandler(() => setIsExpanded(true)) : undefined
-			}
-			ref={componentRef}
-			role={!isExpanded && ruleType !== "hook" ? "button" : "presentation"}
-			tabIndex={!isExpanded && ruleType !== "hook" ? 0 : undefined}>
+			{...(isClickable
+				? {
+						onClick: () => setIsExpanded(true),
+						onKeyDown: createKeyboardActivationHandler(() => setIsExpanded(true)),
+						role: "button",
+						tabIndex: 0,
+					}
+				: {})}
+			ref={componentRef}>
 			<div
 				className={cn(
 					"flex items-center px-2 py-4 rounded bg-input-background transition-all duration-300 ease-in-out h-5",

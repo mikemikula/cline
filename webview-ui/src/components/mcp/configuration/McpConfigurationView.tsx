@@ -44,11 +44,15 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 	}
 
 	const handleTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-		if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return
+		if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+			return
+		}
 		e.preventDefault()
 
 		const currentIndex = visibleTabs.findIndex((tab) => tab.id === activeTab)
-		if (currentIndex === -1) return
+		if (currentIndex === -1) {
+			return
+		}
 
 		const nextIndex =
 			e.key === "ArrowRight"

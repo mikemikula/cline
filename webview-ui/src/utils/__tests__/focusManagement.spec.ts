@@ -22,7 +22,7 @@ describe("useFocusTrap", () => {
 	})
 
 	it("should trap focus within container when active", () => {
-		const { rerender } = renderHook(({ isActive }) => useFocusTrap(isActive, containerRef), {
+		renderHook(({ isActive }) => useFocusTrap(isActive, containerRef), {
 			initialProps: { isActive: true },
 		})
 

@@ -1,7 +1,7 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { AlertTriangle } from "lucide-react"
-import React, { ReactNode } from "react"
-import { createEscapeHandler } from "@/utils/interactiveProps"
+import React, { ReactNode, useEffect, useRef } from "react"
+import { useFocusTrap } from "@/utils/focusManagement"
 import { OPENROUTER_MODEL_PICKER_Z_INDEX } from "../settings/OpenRouterModelPicker"
 
 interface AlertDialogProps {
@@ -11,24 +11,38 @@ interface AlertDialogProps {
 }
 
 export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) {
+	const containerRef = useRef<HTMLDivElement>(null)
+	useFocusTrap(open, containerRef)
+
+	useEffect(() => {
+		if (!open) {
+			return
+		}
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				e.preventDefault()
+				onOpenChange(false)
+			}
+		}
+		window.addEventListener("keydown", handleEscape)
+		return () => window.removeEventListener("keydown", handleEscape)
+	}, [open, onOpenChange])
+
 	if (!open) {
 		return null
 	}
 
-	// Close the dialog when clicking on the backdrop
-	const handleBackdropClick = (e: React.MouseEvent) => {
-		if (e.target === e.currentTarget) {
-			onOpenChange(false)
-		}
-	}
-
 	return (
 		<div
-			className={`fixed inset-0 bg-black/50 flex items-center justify-center`}
-			onClick={handleBackdropClick}
-			onKeyDown={createEscapeHandler(() => onOpenChange(false))}
-			role="presentation"
+			className="fixed inset-0 flex items-center justify-center"
+			ref={containerRef}
 			style={{ zIndex: OPENROUTER_MODEL_PICKER_Z_INDEX + 50 }}>
+			<button
+				aria-label="Close dialog"
+				className="absolute inset-0 bg-black/50 cursor-default"
+				onClick={() => onOpenChange(false)}
+				type="button"
+			/>
 			{children}
 		</div>
 	)

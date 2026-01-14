@@ -223,8 +223,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
 	return (
 		<div
-			onMouseDown={onMouseDown}
-			role="presentation"
 			style={{
 				position: "absolute",
 				bottom: "calc(100% - 10px)",
@@ -240,7 +238,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 						? `context-menu-item-${selectedIndex}`
 						: undefined,
 				)}
+				onMouseDown={onMouseDown}
 				ref={menuRef}
+				role="listbox"
 				style={{
 					backgroundColor: "var(--vscode-dropdown-background)",
 					border: "1px solid var(--vscode-editorGroup-border)",

@@ -127,9 +127,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	return (
 		<div
 			className="absolute bottom-[calc(100%-10px)] left-[15px] right-[15px] overflow-x-hidden z-1000"
-			data-testid="slash-commands-menu"
-			onMouseDown={onMouseDown}
-			role="presentation">
+			data-testid="slash-commands-menu">
 			<ScreenReaderAnnounce message={announcement} />
 			<div
 				{...createListboxProps(
@@ -137,7 +135,9 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 					filteredCommands.length > 0 ? `slash-command-menu-item-${selectedIndex}` : undefined,
 				)}
 				className="bg-(--vscode-dropdown-background) border border-(--vscode-editorGroup-border) rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
+				onMouseDown={onMouseDown}
 				ref={menuRef}
+				role="listbox"
 				style={{ maxHeight: "min(200px, calc(50vh))", overscrollBehavior: "contain" }}>
 				{filteredCommands.length > 0 ? (
 					<>

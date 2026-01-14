@@ -5,12 +5,16 @@ export { getFocusableElements } from "./interactiveProps"
 
 export function useFocusTrap(isActive: boolean, containerRef: RefObject<HTMLElement>): void {
 	useEffect(() => {
-		if (!isActive || !containerRef.current) return
+		if (!isActive || !containerRef.current) {
+			return
+		}
 
 		const container = containerRef.current
 
 		const handleTabKey = (e: KeyboardEvent): void => {
-			if (e.key !== "Tab") return
+			if (e.key !== "Tab") {
+				return
+			}
 
 			const focusableElements = getFocusableElements(container, true)
 			if (focusableElements.length === 0) {
@@ -73,7 +77,9 @@ export function useModal<TriggerElement extends HTMLElement = HTMLElement, Conta
 	useFocusRestoration(triggerRef)
 
 	useEffect(() => {
-		if (!isOpen) return
+		if (!isOpen) {
+			return
+		}
 
 		const handleEscape = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {

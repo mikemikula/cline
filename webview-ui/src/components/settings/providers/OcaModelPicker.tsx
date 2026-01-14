@@ -1,7 +1,9 @@
 import type { ApiConfiguration, OcaModelInfo } from "@shared/api"
 import { Mode } from "@shared/storage/types"
 import { VSCodeButton, VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
-import React, { useMemo } from "react"
+import DOMPurify from "dompurify"
+import React, { useCallback, useMemo, useRef } from "react"
+import { useFocusTrap } from "@/utils/focusManagement"
 import { VSC_BUTTON_BACKGROUND, VSC_BUTTON_FOREGROUND, VSC_DESCRIPTION_FOREGROUND, VSC_FOREGROUND } from "@/utils/vscStyles"
 import { ModelInfoView } from "../common/ModelInfoView"
 import ThinkingBudgetSlider from "../ThinkingBudgetSlider"
@@ -95,6 +97,11 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 		}
 	}
 
+	const onCancel = useCallback(() => {
+		setPendingModelId(null)
+		setShowRestrictedPopup(false)
+	}, [])
+
 	const handleRefreshToken = async () => {
 		await onRefresh?.()
 	}
@@ -104,7 +111,7 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 	}, [apiConfiguration, currentMode])
 
 	const selectedReasoningEffort = useMemo(() => {
-		if (currentMode == "plan") {
+		if (currentMode === "plan") {
 			return apiConfiguration?.planModeOcaReasoningEffort
 		} else {
 			return apiConfiguration?.actModeOcaReasoningEffort
@@ -133,6 +140,7 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 				<OcaRestrictivePopup
 					bannerText={ocaModels && pendingModelId && ocaModels[pendingModelId]?.banner}
 					onAcknowledge={onAcknowledge}
+					onCancel={onCancel}
 				/>
 			)}
 			<style>{`
@@ -145,7 +153,9 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 					overflow: auto;
 				}
 			`}</style>
-			<label className="font-medium text-[12px] mt-[10px] mb-[2px]">Model</label>
+			<label className="font-medium text-[12px] mt-[10px] mb-[2px]" htmlFor="model-id">
+				Model
+			</label>
 			<div className="relative z-100 flex items-center gap-2 mb-1">
 				<VSCodeDropdown
 					className="flex-1 text-[12px] min-h-[24px]"
@@ -193,7 +203,9 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 			) : null}
 			{!loading && selectedModelInfo && selectedModelInfo.supportsReasoning && reasoningEffortOptions.length > 0 && (
 				<React.Fragment>
-					<label className="font-medium text-[12px] mt-[10px] mb-[2px]">Reasoning Effort</label>
+					<label className="font-medium text-[12px] mt-[10px] mb-[2px]" htmlFor="reasoning-effort-dropdown">
+						Reasoning Effort
+					</label>
 					<div className="flex items-center gap-2 mb-1">
 						<VSCodeDropdown
 							className="flex-1 text-[12px] min-h-[24px]"
@@ -235,34 +247,57 @@ export default OcaModelPicker
 
 const OcaRestrictivePopup: React.FC<{
 	onAcknowledge: () => void
+	onCancel: () => void
 	bannerText?: string | null
-}> = React.memo(({ onAcknowledge, bannerText }) => (
-	<div className="fixed top-0 left-0 w-screen h-screen z-2000 [background:rgba(0,0,0,0.25)] flex items-center justify-center">
-		<div
-			aria-labelledby="oca-popup-title"
-			aria-modal="true"
-			className={`p-6 max-w-[600px] w-[90%] rounded-[8px] [box-shadow:0_4px_24px_0_var(--vscode-widget-shadow,rgba(0,0,0,.4))] [border:1px_solid_var(--vscode-focusBorder,#007acc)] [background:var(--vscode-editor-background,#252526)] [color:var(${VSC_FOREGROUND},#cccccc)] [font-family:var(--vscode-font-family,sans-serif)] [font-size:var(--vscode-font-size,13px)] flex flex-col max-h-[80vh]`}
-			role="dialog">
-			<h2 className={`mt-0 [color:var(${VSC_FOREGROUND},#111)] font-bold`} id="oca-popup-title">
-				Acknowledgement Required
-			</h2>
-			<h4 className={`mb-2 [color:var(${VSC_DESCRIPTION_FOREGROUND},#b3b3b3)] font-semibold`}>
-				Disclaimer: Prohibited Data Submission
-			</h4>
-			<div className="overflow-y-auto flex-1 pr-2 mb-4 text-[13px] leading-normal text-(--vscode-foreground,#222) mask-[linear-gradient(to_bottom,black_96%,transparent_100%)]">
-				{bannerText && <div dangerouslySetInnerHTML={{ __html: bannerText }} />}
-			</div>
-			<div className="text-right">
-				<VSCodeButton
-					onClick={onAcknowledge}
-					style={{
-						background: `var(${VSC_BUTTON_BACKGROUND}, #0e639c)`,
-						color: `var(${VSC_BUTTON_FOREGROUND}, #fff)`,
-					}}
-					type="button">
-					I acknowledge and agree
-				</VSCodeButton>
+}> = React.memo(({ onAcknowledge, onCancel, bannerText }) => {
+	const containerRef = useRef<HTMLDivElement>(null)
+	useFocusTrap(true, containerRef)
+
+	React.useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				e.preventDefault()
+				onCancel()
+			}
+		}
+		window.addEventListener("keydown", handleEscape)
+		return () => window.removeEventListener("keydown", handleEscape)
+	}, [onCancel])
+
+	return (
+		<div className="fixed top-0 left-0 w-screen h-screen z-2000 flex items-center justify-center" ref={containerRef}>
+			<button
+				aria-label="Close dialog"
+				className="absolute inset-0 [background:rgba(0,0,0,0.25)] cursor-default"
+				onClick={onCancel}
+				type="button"
+			/>
+			<div
+				aria-labelledby="oca-popup-title"
+				aria-modal="true"
+				className={`relative p-6 max-w-[600px] w-[90%] rounded-[8px] [box-shadow:0_4px_24px_0_var(--vscode-widget-shadow,rgba(0,0,0,.4))] [border:1px_solid_var(--vscode-focusBorder,#007acc)] [background:var(--vscode-editor-background,#252526)] [color:var(${VSC_FOREGROUND},#cccccc)] [font-family:var(--vscode-font-family,sans-serif)] [font-size:var(--vscode-font-size,13px)] flex flex-col max-h-[80vh]`}
+				role="dialog">
+				<h2 className={`mt-0 [color:var(${VSC_FOREGROUND},#111)] font-bold`} id="oca-popup-title">
+					Acknowledgement Required
+				</h2>
+				<h4 className={`mb-2 [color:var(${VSC_DESCRIPTION_FOREGROUND},#b3b3b3)] font-semibold`}>
+					Disclaimer: Prohibited Data Submission
+				</h4>
+				<div className="overflow-y-auto flex-1 pr-2 mb-4 text-[13px] leading-normal text-(--vscode-foreground,#222) mask-[linear-gradient(to_bottom,black_96%,transparent_100%)]">
+					{bannerText && <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(bannerText) }} />}
+				</div>
+				<div className="text-right">
+					<VSCodeButton
+						onClick={onAcknowledge}
+						style={{
+							background: `var(${VSC_BUTTON_BACKGROUND}, #0e639c)`,
+							color: `var(${VSC_BUTTON_FOREGROUND}, #fff)`,
+						}}
+						type="button">
+						I acknowledge and agree
+					</VSCodeButton>
+				</div>
 			</div>
 		</div>
-	</div>
-))
+	)
+})

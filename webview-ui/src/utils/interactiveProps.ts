@@ -299,13 +299,19 @@ export const getFocusableElements = (container: HTMLElement, sortInputsFirst = f
 	const elements = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
 		(el) => !el.hasAttribute("disabled") && !el.hasAttribute("aria-hidden"),
 	)
-	if (!sortInputsFirst) return elements
+	if (!sortInputsFirst) {
+		return elements
+	}
 
 	return elements.sort((a, b) => {
 		const aIsInput = a.tagName === "INPUT" || a.tagName === "TEXTAREA"
 		const bIsInput = b.tagName === "INPUT" || b.tagName === "TEXTAREA"
-		if (aIsInput && !bIsInput) return -1
-		if (!aIsInput && bIsInput) return 1
+		if (aIsInput && !bIsInput) {
+			return -1
+		}
+		if (!aIsInput && bIsInput) {
+			return 1
+		}
 		return 0
 	})
 }
@@ -317,7 +323,9 @@ export const createFocusTrapHandler =
 	): React.KeyboardEventHandler<HTMLElement> =>
 	(e) => {
 		const container = containerRef.current
-		if (!container) return
+		if (!container) {
+			return
+		}
 
 		if (e.key === "Escape" && options?.onEscape) {
 			e.preventDefault()
@@ -325,10 +333,14 @@ export const createFocusTrapHandler =
 			return
 		}
 
-		if (e.key !== "Tab") return
+		if (e.key !== "Tab") {
+			return
+		}
 
 		const focusableElements = getFocusableElements(container)
-		if (focusableElements.length === 0) return
+		if (focusableElements.length === 0) {
+			return
+		}
 
 		const firstElement = focusableElements[0]
 		const lastElement = focusableElements[focusableElements.length - 1]
@@ -360,20 +372,28 @@ type ValidationAriaProps = {
 }
 
 const applyValidationProps = (validation?: InputValidationState): ValidationAriaProps => {
-	if (!validation) return {}
+	if (!validation) {
+		return {}
+	}
 
 	const { hasError, errorId, descriptionId } = validation
 	const props: ValidationAriaProps = {}
 
-	if (hasError) props["aria-invalid"] = true
+	if (hasError) {
+		props["aria-invalid"] = true
+	}
 
 	const describedByIds: string[] = []
-	if (descriptionId) describedByIds.push(descriptionId)
+	if (descriptionId) {
+		describedByIds.push(descriptionId)
+	}
 	if (hasError && errorId) {
 		describedByIds.push(errorId)
 		props["aria-errormessage"] = errorId
 	}
-	if (describedByIds.length > 0) props["aria-describedby"] = describedByIds.join(" ")
+	if (describedByIds.length > 0) {
+		props["aria-describedby"] = describedByIds.join(" ")
+	}
 
 	return props
 }
@@ -403,7 +423,9 @@ export const generateFieldIds = (
 
 export const createLinkProps = (href: string, ariaLabel?: string): LinkProps => {
 	const props: LinkProps = { href }
-	if (ariaLabel) props["aria-label"] = ariaLabel
+	if (ariaLabel) {
+		props["aria-label"] = ariaLabel
+	}
 	return props
 }
 

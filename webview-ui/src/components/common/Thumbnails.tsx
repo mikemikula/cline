@@ -65,14 +65,11 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 				...style,
 			}}>
 			{images.map((image, index) => (
-				<div
-					key={`image-${index}`}
-					onMouseEnter={() => setHoveredIndex(`image-${index}`)}
-					onMouseLeave={() => setHoveredIndex(null)}
-					role="presentation"
-					style={{ position: "relative" }}>
+				<div key={image} style={{ position: "relative" }}>
 					<button
 						{...createBaseButtonProps(`Open image ${index + 1}`, () => handleImageClick(image))}
+						onMouseEnter={() => setHoveredIndex(image)}
+						onMouseLeave={() => setHoveredIndex(null)}
 						style={createButtonStyle.icon({ width: 34, height: 34 })}>
 						<img
 							alt={`Thumbnail image-${index + 1}`}
@@ -80,7 +77,7 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 							style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }}
 						/>
 					</button>
-					{isDeletableImages && hoveredIndex === `image-${index}` && (
+					{isDeletableImages && hoveredIndex === image && (
 						<button
 							{...createIconButtonProps(`Delete image ${index + 1}`, () => handleDeleteImages(index))}
 							style={createButtonStyle.icon({
@@ -106,14 +103,11 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 				const fileName = filePath.split(/[\\/]/).pop() || filePath
 
 				return (
-					<div
-						key={`file-${index}`}
-						onMouseEnter={() => setHoveredIndex(`file-${index}`)}
-						onMouseLeave={() => setHoveredIndex(null)}
-						role="presentation"
-						style={{ position: "relative" }}>
+					<div key={filePath} style={{ position: "relative" }}>
 						<button
 							{...createBaseButtonProps(`Open file: ${fileName}`, () => handleFileClick(filePath))}
+							onMouseEnter={() => setHoveredIndex(filePath)}
+							onMouseLeave={() => setHoveredIndex(null)}
 							style={{
 								...createButtonStyle.flexReset(),
 								width: 34,
@@ -139,7 +133,7 @@ const Thumbnails = ({ images, files, style, setImages, setFiles, onHeightChange,
 								{fileName}
 							</span>
 						</button>
-						{isDeletableFiles && hoveredIndex === `file-${index}` && (
+						{isDeletableFiles && hoveredIndex === filePath && (
 							<button
 								{...createIconButtonProps(`Delete file: ${fileName}`, () => handleDeleteFiles(index))}
 								style={createButtonStyle.icon({
