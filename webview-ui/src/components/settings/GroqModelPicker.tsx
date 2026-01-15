@@ -4,12 +4,13 @@ import { fromProtobufModels } from "@shared/proto-conversions/models/typeConvers
 import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
-import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
-import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
+import { createDivAsButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
-import { highlight } from "../history/HistoryView"
+import { HighlightedText, highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
 import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
@@ -26,28 +27,25 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 	const [searchTerm, setSearchTerm] = useState(modeFields.groqModelId || groqDefaultModelId)
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		// Use dynamic models if available, otherwise fall back to static models
-		const modelInfo = dynamicGroqModels?.[newModelId] || groqModels[newModelId as keyof typeof groqModels]
-
-		handleModeFieldsChange(
-			{
-				groqModelId: { plan: "planModeGroqModelId", act: "actModeGroqModelId" },
-				groqModelInfo: { plan: "planModeGroqModelInfo", act: "actModeGroqModelInfo" },
-			},
-			{
-				groqModelId: newModelId,
-				groqModelInfo: modelInfo,
-			},
-			currentMode,
-		)
-		setSearchTerm(newModelId)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			const modelInfo = dynamicGroqModels?.[newModelId] || groqModels[newModelId as keyof typeof groqModels]
+			handleModeFieldsChange(
+				{
+					groqModelId: { plan: "planModeGroqModelId", act: "actModeGroqModelId" },
+					groqModelInfo: { plan: "planModeGroqModelInfo", act: "actModeGroqModelInfo" },
+				},
+				{ groqModelId: newModelId, groqModelInfo: modelInfo },
+				currentMode,
+			)
+			setSearchTerm(newModelId)
+		},
+		[dynamicGroqModels, handleModeFieldsChange, currentMode],
+	)
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
 		return normalizeApiConfiguration(apiConfiguration, currentMode)
@@ -123,39 +121,27 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const results: { id: string; html: string }[] = debouncedSearchTerm
-			? highlight(fuse.search(debouncedSearchTerm))
-			: searchableItems
-		return results
+		return debouncedSearchTerm ? highlight(fuse.search(debouncedSearchTerm), "html") : searchableItems
 	}, [searchableItems, debouncedSearchTerm, fuse])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
-
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
 				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				break
-		}
-	}
+			}
+		},
+		[modelSearchResults, handleModelChange],
+	)
+
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	const hasInfo = useMemo(() => {
 		try {
@@ -166,11 +152,11 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 	}, [modelIds, searchTerm])
 
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
@@ -213,18 +199,12 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								{...createIconButtonProps("Clear search", () => {
+								{...createDivAsButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
 								})}
 								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
-								onKeyDown={createKeyboardActivationHandler(() => {
-									setSearchTerm("")
-									setIsDropdownVisible(true)
-								})}
-								role="button"
 								slot="end"
-								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>
@@ -241,17 +221,30 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 									className={`px-2.5 py-1.5 cursor-pointer break-all whitespace-normal hover:bg-(--vscode-list-activeSelectionBackground) ${
 										index === selectedIndex ? "bg-(--vscode-list-activeSelectionBackground)" : ""
 									}`}
-									dangerouslySetInnerHTML={{
-										__html: item.html,
-									}}
 									key={item.id}
 									onClick={() => {
 										handleModelChange(item.id)
 										setIsDropdownVisible(false)
 									}}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault()
+											handleModelChange(item.id)
+											setIsDropdownVisible(false)
+										}
+									}}
 									onMouseEnter={() => setSelectedIndex(index)}
-									ref={(el: HTMLDivElement | null) => (itemRefs.current[index] = el)}
-								/>
+									ref={(el: HTMLDivElement | null) => {
+										itemRefs.current[index] = el
+									}}
+									role="option"
+									tabIndex={-1}>
+									<HighlightedText
+										className="model-item-highlight"
+										regions={item._highlightRegions}
+										text={item.id}
+									/>
+								</div>
 							))}
 						</div>
 					)}

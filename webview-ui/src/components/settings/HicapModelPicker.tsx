@@ -2,11 +2,12 @@ import { StringRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
-import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
 import { createIconButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { HighlightedText, highlight } from "../history/HistoryView"
 import { getModeSpecificFields } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
@@ -37,26 +38,24 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ currentMode }) => {
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
 	const [searchTerm, setSearchTerm] = useState(modeFields.hicapModelId || "gpt-5")
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		setSearchTerm(newModelId)
-
-		handleModeFieldsChange(
-			{
-				hicapModelId: { plan: "planModeHicapModelId", act: "actModeHicapModelId" },
-				hicapModelInfo: { plan: "planModeHicapModelInfo", act: "actModeHicapModelInfo" },
-			},
-			{
-				hicapModelId: newModelId,
-				hicapModelInfo: {},
-			},
-			currentMode,
-		)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			setSearchTerm(newModelId)
+			handleModeFieldsChange(
+				{
+					hicapModelId: { plan: "planModeHicapModelId", act: "actModeHicapModelId" },
+					hicapModelInfo: { plan: "planModeHicapModelInfo", act: "actModeHicapModelInfo" },
+				},
+				{ hicapModelId: newModelId, hicapModelInfo: {} },
+				currentMode,
+			)
+		},
+		[handleModeFieldsChange, currentMode],
+	)
 
 	useMount(refreshHicapModels)
 
@@ -119,40 +118,31 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ currentMode }) => {
 		return [...favoritedModels, ...searchResults]
 	}, [searchableItems, searchTerm, fuse, favoritedModelIds])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
-
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
 				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				break
-		}
-	}
+			}
+		},
+		[modelSearchResults, handleModelChange],
+	)
+
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {

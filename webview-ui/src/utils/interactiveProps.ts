@@ -4,7 +4,6 @@ import type {
 	DivAsModalTriggerProps,
 	ExternalLinkProps,
 	FocusTrapOptions,
-	IconButtonProps,
 	InputProps,
 	InputValidationState,
 	LinkButtonProps,
@@ -19,6 +18,7 @@ import type {
 	TabNavigationOptions,
 	TabPanelProps,
 	ToggleButtonProps,
+	VSCodeIconButtonProps,
 } from "../types/interactive"
 import { InteractiveStyles } from "../types/interactive"
 
@@ -152,7 +152,7 @@ export const createToggleButtonProps = (
 export const createIconButtonProps = (
 	ariaLabel: string,
 	onClick: React.MouseEventHandler<HTMLButtonElement>,
-): IconButtonProps => ({
+): VSCodeIconButtonProps => ({
 	type: "button",
 	"aria-label": ariaLabel,
 	onClick,

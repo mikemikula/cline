@@ -9,7 +9,11 @@ export interface ToggleButtonProps extends BaseButtonProps {
 	"aria-expanded": boolean
 }
 
-export interface IconButtonProps extends BaseButtonProps {}
+export type VSCodeIconButtonProps = {
+	type: "button" | "submit" | "reset"
+	"aria-label": string
+	onClick: React.MouseEventHandler<HTMLButtonElement>
+}
 
 export interface LinkButtonProps extends BaseButtonProps {
 	href?: never

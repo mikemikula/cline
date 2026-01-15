@@ -6,6 +6,11 @@ vscode-button::part(control):focus {
 	outline: none;
 }
 
+vscode-button::part(control):focus-visible {
+	outline: 2px solid var(--vscode-focusBorder, #007fd4);
+	outline-offset: 2px;
+}
+
 /* Enhanced focus indicators for accessibility */
 button:focus-visible,
 [role="button"]:focus-visible,
@@ -25,6 +30,11 @@ textarea:focus-visible {
 	input:focus-visible,
 	select:focus-visible,
 	textarea:focus-visible {
+		outline-width: 3px;
+		outline-offset: 3px;
+	}
+
+	vscode-button::part(control):focus-visible {
 		outline-width: 3px;
 		outline-offset: 3px;
 	}

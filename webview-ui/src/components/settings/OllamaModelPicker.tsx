@@ -1,8 +1,9 @@
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
-import React, { KeyboardEvent, memo, useEffect, useMemo, useRef, useState } from "react"
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 import { createIconButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { HighlightedText, highlight } from "../history/HistoryView"
 
 export const OLLAMA_MODEL_PICKER_Z_INDEX = 1_000
@@ -22,15 +23,17 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 }) => {
 	const [searchTerm, setSearchTerm] = useState(selectedModelId || "")
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		onModelChange(newModelId)
-		setSearchTerm(newModelId)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			onModelChange(newModelId)
+			setSearchTerm(newModelId)
+		},
+		[onModelChange],
+	)
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -68,40 +71,31 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 		return searchTerm ? highlight(fuse.search(searchTerm)) : searchableItems
 	}, [searchableItems, searchTerm, fuse])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
-
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
 				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				break
-		}
-	}
+			}
+		},
+		[modelSearchResults, handleModelChange],
+	)
+
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {

@@ -3,7 +3,7 @@ import PROVIDERS from "@shared/providers/providers.json"
 import { Mode } from "@shared/storage/types"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
-import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useInterval } from "react-use"
 import styled from "styled-components"
 import { normalizeApiConfiguration } from "@/components/settings/utils/providerUtils"
@@ -11,7 +11,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ModelsServiceClient } from "@/services/grpc-client"
-import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
+import { createDivAsButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { OPENROUTER_MODEL_PICKER_Z_INDEX } from "./OpenRouterModelPicker"
 import { AIhubmixProvider } from "./providers/AihubmixProvider"
 import { AnthropicProvider } from "./providers/AnthropicProvider"
@@ -125,7 +126,6 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 	// Provider search state
 	const [searchTerm, setSearchTerm] = useState("")
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
@@ -181,39 +181,34 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 		return searchTerm && searchTerm !== currentProviderLabel ? fuse.search(searchTerm)?.map((r) => r.item) : searchableItems
 	}, [searchableItems, searchTerm, fuse, currentProviderLabel])
 
-	const handleProviderChange = (newProvider: string) => {
-		handleModeFieldChange({ plan: "planModeApiProvider", act: "actModeApiProvider" }, newProvider as any, currentMode)
+	const handleProviderChange = useCallback(
+		(newProvider: string) => {
+			handleModeFieldChange({ plan: "planModeApiProvider", act: "actModeApiProvider" }, newProvider as any, currentMode)
+			setIsDropdownVisible(false)
+		},
+		[handleModeFieldChange, currentMode],
+	)
+
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < providerSearchResults.length) {
+				handleProviderChange(providerSearchResults[index].value)
+			}
+		},
+		[providerSearchResults, handleProviderChange],
+	)
+
+	const closeDropdown = useCallback(() => {
 		setIsDropdownVisible(false)
-		setSelectedIndex(-1)
-	}
+		setSearchTerm(currentProviderLabel)
+	}, [currentProviderLabel])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
-
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < providerSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < providerSearchResults.length) {
-					handleProviderChange(providerSearchResults[selectedIndex].value)
-				}
-				break
-			case "Escape":
-				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				setSearchTerm(currentProviderLabel)
-				break
-		}
-	}
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: providerSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
@@ -232,11 +227,11 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 
 	// Reset selection when search term changes
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	// Scroll selected item into view
 	useEffect(() => {
@@ -308,16 +303,11 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 						value={searchTerm}>
 						{searchTerm && searchTerm !== currentProviderLabel && (
 							<div
-								{...createIconButtonProps("Clear search", () => {
+								{...createDivAsButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
 								})}
 								className="input-icon-button codicon codicon-close"
-								onKeyDown={createKeyboardActivationHandler(() => {
-									setSearchTerm("")
-									setIsDropdownVisible(true)
-								})}
-								role="button"
 								slot="end"
 								style={{
 									display: "flex",
@@ -325,7 +315,6 @@ const ApiOptions = ({ showModelOptions, apiErrorMessage, modelIdErrorMessage, is
 									alignItems: "center",
 									height: "100%",
 								}}
-								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>

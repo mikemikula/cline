@@ -47,6 +47,7 @@ import {
 	slashCommandRegexGlobal,
 	validateSlashCommand,
 } from "@/utils/slash-commands"
+import { useToolbarNavigation } from "@/utils/useToolbarNavigation"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 import ServersToggleModal from "./ServersToggleModal"
@@ -174,7 +175,6 @@ const ModelDisplayButton = styled.button<{ isActive?: boolean; disabled?: boolea
 	display: flex;
 	align-items: center;
 	font-size: 10px;
-	outline: none;
 	user-select: none;
 	opacity: ${(props) => (props.disabled ? 0.5 : 1)};
 	pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
@@ -183,7 +183,7 @@ const ModelDisplayButton = styled.button<{ isActive?: boolean; disabled?: boolea
 	font-family: inherit;
 
 	&:hover,
-	&:focus {
+	&:focus:not(:focus-visible) {
 		color: ${(props) => (props.disabled ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)")};
 		text-decoration: ${(props) => (props.disabled ? "none" : "underline")};
 		outline: none;
@@ -192,11 +192,11 @@ const ModelDisplayButton = styled.button<{ isActive?: boolean; disabled?: boolea
 	&:active {
 		color: ${(props) => (props.disabled ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)")};
 		text-decoration: ${(props) => (props.disabled ? "none" : "underline")};
-		outline: none;
 	}
 
 	&:focus-visible {
-		outline: none;
+		outline: 2px solid var(--vscode-focusBorder);
+		outline-offset: 2px;
 	}
 `
 
@@ -268,6 +268,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const modelSelectorRef = useRef<HTMLDivElement>(null)
 		const buttonRef = useRef<HTMLDivElement>(null)
 		const [shownTooltipMode, _setShownTooltipMode] = useState<Mode | null>(null)
+
+		// Toolbar navigation for ButtonGroup (Context, Files, Servers, Rules, Model)
+		const {
+			getItemProps: getToolbarItemProps,
+			setItemRef: setToolbarItemRef,
+			containerProps: toolbarContainerProps,
+		} = useToolbarNavigation({ itemCount: 5 })
 		const [pendingInsertions, setPendingInsertions] = useState<string[]>([])
 		const [showUnsupportedFileError, setShowUnsupportedFileError] = useState(false)
 		const unsupportedFileTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -1660,47 +1667,71 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					{/* Always render both components, but control visibility with CSS */}
 					<div className="relative flex-1 min-w-0 h-5">
 						{/* ButtonGroup - always in DOM but visibility controlled */}
-						<ButtonGroup className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
+						<ButtonGroup
+							{...toolbarContainerProps}
+							aria-label="Chat actions"
+							className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
 							<Tooltip>
 								<TooltipContent>Add Context</TooltipContent>
 								<TooltipTrigger asChild>
-									<VSCodeButton
-										{...createIconButtonProps("Add Context", handleContextButtonClick)}
-										appearance="icon"
-										className="p-0 m-0 flex items-center"
-										data-testid="context-button"
-										onClick={handleContextButtonClick}>
-										<ButtonContainer>
-											<AtSignIcon size={12} />
-										</ButtonContainer>
-									</VSCodeButton>
+									<div
+										{...getToolbarItemProps(0)}
+										ref={(el) => {
+											if (el) {
+												setToolbarItemRef(0, {
+													focus: () => (el.querySelector("vscode-button") as HTMLElement)?.focus(),
+												})
+											}
+										}}>
+										<VSCodeButton
+											{...createIconButtonProps("Add Context", handleContextButtonClick)}
+											appearance="icon"
+											className="p-0 m-0 flex items-center"
+											data-testid="context-button"
+											onClick={handleContextButtonClick}
+											tabIndex={getToolbarItemProps(0).tabIndex}>
+											<ButtonContainer>
+												<AtSignIcon size={12} />
+											</ButtonContainer>
+										</VSCodeButton>
+									</div>
 								</TooltipTrigger>
 							</Tooltip>
 
 							<Tooltip>
 								<TooltipContent>Add Files & Images</TooltipContent>
 								<TooltipTrigger asChild>
-									<VSCodeButton
-										{...createIconButtonProps("Add Files & Images", handleFilesButtonClick)}
-										appearance="icon"
-										className="p-0 m-0 flex items-center"
-										data-testid="files-button"
-										disabled={shouldDisableFilesAndImages}
-										onClick={() => {
-											if (!shouldDisableFilesAndImages) {
-												onSelectFilesAndImages()
+									<div
+										{...getToolbarItemProps(1)}
+										ref={(el) => {
+											if (el) {
+												setToolbarItemRef(1, {
+													focus: () => (el.querySelector("vscode-button") as HTMLElement)?.focus(),
+												})
 											}
 										}}>
-										<ButtonContainer>
-											<PlusIcon size={13} />
-										</ButtonContainer>
-									</VSCodeButton>
+										<VSCodeButton
+											{...createIconButtonProps("Add Files & Images", () => {
+												if (!shouldDisableFilesAndImages) {
+													onSelectFilesAndImages()
+												}
+											})}
+											appearance="icon"
+											className="p-0 m-0 flex items-center"
+											data-testid="files-button"
+											disabled={shouldDisableFilesAndImages}
+											tabIndex={getToolbarItemProps(1).tabIndex}>
+											<ButtonContainer>
+												<PlusIcon size={13} />
+											</ButtonContainer>
+										</VSCodeButton>
+									</div>
 								</TooltipTrigger>
 							</Tooltip>
 
-							<ServersToggleModal />
+							<ServersToggleModal {...getToolbarItemProps(2)} ref={(handle) => setToolbarItemRef(2, handle)} />
 
-							<ClineRulesToggleModal />
+							<ClineRulesToggleModal {...getToolbarItemProps(3)} ref={(handle) => setToolbarItemRef(3, handle)} />
 
 							<ModelContainer ref={modelSelectorRef}>
 								<ModelPickerModal
@@ -1713,8 +1744,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 												"Select Model / API Provider",
 												handleModelButtonClick,
 											)}
+											{...getToolbarItemProps(4)}
 											disabled={false}
-											isActive={showModelSelector}>
+											isActive={showModelSelector}
+											ref={(el) => setToolbarItemRef(4, el)}>
 											<ModelButtonContent className="text-xs">{modelDisplayName}</ModelButtonContent>
 										</ModelDisplayButton>
 									</ModelButtonWrapper>
@@ -1737,7 +1770,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							<SwitchContainer
 								{...createToggleButtonProps(
 									mode === "act",
-									handleModeToggle,
+									onModeToggle,
 									`Switch to ${mode === "act" ? "Plan" : "Act"} mode`,
 								)}
 								data-testid="mode-switch"

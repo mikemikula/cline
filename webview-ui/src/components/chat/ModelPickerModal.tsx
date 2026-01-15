@@ -12,6 +12,7 @@ import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import PopupModalContainer from "@/components/common/PopupModalContainer"
 import { useModal } from "@/utils/focusManagement"
 import { createButtonStyle, createDivAsModalTriggerProps, createIconButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 
 const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
@@ -103,7 +104,6 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 	const [arrowPosition, setArrowPosition] = useState(0)
 	const [isProviderExpanded, setIsProviderExpanded] = useState(false)
 	const [providerDropdownPosition, setProviderDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 200 })
-	const [selectedIndex, setSelectedIndex] = useState(-1) // For keyboard navigation
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const providerRowRef = useRef<HTMLDivElement>(null)
 	const providerDropdownRef = useRef<HTMLDivElement>(null)
@@ -394,43 +394,31 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 	)
 
 	// Keyboard navigation handler
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLInputElement>) => {
-			const totalItems = filteredModels.length + featuredModels.length
-			if (totalItems === 0) {
-				return
-			}
+	const totalItems = filteredModels.length + featuredModels.length
 
-			switch (e.key) {
-				case "ArrowDown":
-					e.preventDefault()
-					setSelectedIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev))
-					break
-				case "ArrowUp":
-					e.preventDefault()
-					setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-					break
-				case "Enter":
-					e.preventDefault()
-					if (selectedIndex >= 0) {
-						// Determine which list the index falls into
-						if (selectedIndex < featuredModels.length) {
-							const model = featuredModels[selectedIndex]
-							handleSelectModel(model.id, openRouterModels[model.id])
-						} else {
-							const model = filteredModels[selectedIndex - featuredModels.length]
-							handleSelectModel(model.id, model.info)
-						}
-					}
-					break
-				case "Escape":
-					e.preventDefault()
-					onOpenChange(false)
-					break
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0) {
+				if (index < featuredModels.length) {
+					const model = featuredModels[index]
+					handleSelectModel(model.id, openRouterModels[model.id])
+				} else {
+					const model = filteredModels[index - featuredModels.length]
+					handleSelectModel(model.id, model.info)
+				}
 			}
 		},
-		[filteredModels, featuredModels, selectedIndex, handleSelectModel, openRouterModels, onOpenChange],
+		[featuredModels, filteredModels, handleSelectModel, openRouterModels],
 	)
+
+	const closeModal = useCallback(() => onOpenChange(false), [onOpenChange])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: totalItems,
+		isOpen,
+		onSelect: handleListboxSelect,
+		onClose: closeModal,
+	})
 
 	// Reset selectedIndex and clear refs when search/provider changes
 	useEffect(() => {

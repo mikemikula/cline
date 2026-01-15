@@ -3,9 +3,10 @@ import { EmptyRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
-import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import { createIconButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
 import { HighlightedText, highlight } from "../history/HistoryView"
@@ -24,28 +25,26 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
 	const [searchTerm, setSearchTerm] = useState(modeFields.huggingFaceModelId || huggingFaceDefaultModelId)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		const allModels = { ...huggingFaceModels, ...dynamicModels }
-		const modelInfo = allModels[newModelId as keyof typeof allModels]
-
-		handleModeFieldsChange(
-			{
-				huggingFaceModelId: { plan: "planModeHuggingFaceModelId", act: "actModeHuggingFaceModelId" },
-				huggingFaceModelInfo: { plan: "planModeHuggingFaceModelInfo", act: "actModeHuggingFaceModelInfo" },
-			},
-			{
-				huggingFaceModelId: newModelId,
-				huggingFaceModelInfo: modelInfo,
-			},
-			currentMode,
-		)
-		setSearchTerm(newModelId)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			const allModels = { ...huggingFaceModels, ...dynamicModels }
+			const modelInfo = allModels[newModelId as keyof typeof allModels]
+			handleModeFieldsChange(
+				{
+					huggingFaceModelId: { plan: "planModeHuggingFaceModelId", act: "actModeHuggingFaceModelId" },
+					huggingFaceModelInfo: { plan: "planModeHuggingFaceModelInfo", act: "actModeHuggingFaceModelInfo" },
+				},
+				{ huggingFaceModelId: newModelId, huggingFaceModelInfo: modelInfo },
+				currentMode,
+			)
+			setSearchTerm(newModelId)
+		},
+		[dynamicModels, handleModeFieldsChange, currentMode],
+	)
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
 		return normalizeApiConfiguration(apiConfiguration, currentMode)
@@ -117,34 +116,25 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 		return results
 	}, [searchTerm, fuse, searchableItems])
 
-	const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
-
-		switch (e.key) {
-			case "ArrowDown":
-				e.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : 0))
-				break
-			case "ArrowUp":
-				e.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : modelSearchResults.length - 1))
-				break
-			case "Enter":
-				e.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					const selectedModelId = modelSearchResults[selectedIndex].id
-					handleModelChange(selectedModelId)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
-				e.preventDefault()
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
 				setIsDropdownVisible(false)
-				break
-		}
-	}
+			}
+		},
+		[modelSearchResults, handleModelChange],
+	)
+
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		loop: true,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex] && dropdownListRef.current) {
@@ -178,7 +168,7 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 						onInput={(e: any) => {
 							setSearchTerm(e.target.value)
 							setIsDropdownVisible(true)
-							setSelectedIndex(-1)
+							setSelectedIndex(0)
 						}}
 						onKeyDown={handleKeyDown}
 						placeholder="Search models..."

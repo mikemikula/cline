@@ -4,13 +4,14 @@ import type { Mode } from "@shared/storage/types"
 import { VSCodeDropdown, VSCodeLink, VSCodeOption, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import type React from "react"
-import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
-import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
-import { highlight } from "../history/HistoryView"
+import { createDivAsButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
+import { HighlightedText, highlight } from "../history/HistoryView"
 import { ContextWindowSwitcher } from "./common/ContextWindowSwitcher"
 import { ModelInfoView } from "./common/ModelInfoView"
 import { DropdownContainer } from "./common/ModelSelector"
@@ -22,7 +23,7 @@ import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers
 // Star icon for favorites
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
 	return (
-		<div
+		<button
 			onClick={onClick}
 			style={{
 				cursor: "pointer",
@@ -34,9 +35,13 @@ const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: R
 				justifyContent: "center",
 				userSelect: "none",
 				WebkitUserSelect: "none",
-			}}>
+				border: "none",
+				background: "transparent",
+				padding: 0,
+			}}
+			type="button">
 			{isFavorite ? "★" : "☆"}
-		</div>
+		</button>
 	)
 }
 
@@ -101,7 +106,6 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
 	const [searchTerm, setSearchTerm] = useState(modeFields.openRouterModelId || openRouterDefaultModelId)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const [activeTab, setActiveTab] = useState<"recommended" | "free">(() => {
 		const currentModelId = modeFields.openRouterModelId || openRouterDefaultModelId
 		return freeModels.some((m) => m.id === currentModelId) ? "free" : "recommended"
@@ -110,23 +114,20 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		// could be setting invalid model id/undefined info but validation will catch it
-
-		setSearchTerm(newModelId)
-
-		handleModeFieldsChange(
-			{
-				openRouterModelId: { plan: "planModeOpenRouterModelId", act: "actModeOpenRouterModelId" },
-				openRouterModelInfo: { plan: "planModeOpenRouterModelInfo", act: "actModeOpenRouterModelInfo" },
-			},
-			{
-				openRouterModelId: newModelId,
-				openRouterModelInfo: openRouterModels[newModelId],
-			},
-			currentMode,
-		)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			setSearchTerm(newModelId)
+			handleModeFieldsChange(
+				{
+					openRouterModelId: { plan: "planModeOpenRouterModelId", act: "actModeOpenRouterModelId" },
+					openRouterModelInfo: { plan: "planModeOpenRouterModelInfo", act: "actModeOpenRouterModelInfo" },
+				},
+				{ openRouterModelId: newModelId, openRouterModelInfo: openRouterModels[newModelId] },
+				currentMode,
+			)
+		},
+		[handleModeFieldsChange, openRouterModels, currentMode],
+	)
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
 		const selected = normalizeApiConfiguration(apiConfiguration, currentMode)
@@ -193,51 +194,38 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		// IMPORTANT: highlightjs has a bug where if you use sort/localCompare - "// results.sort((a, b) => a.id.localeCompare(b.id)) ...sorting like this causes ids in objects to be reordered and mismatched"
-
 		// First, get all favorited models
 		const favoritedModels = searchableItems.filter((item) => favoritedModelIds.includes(item.id))
 
 		// Then get search results for non-favorited models
 		const searchResults = searchTerm
-			? highlight(fuse.search(searchTerm)).filter((item) => !favoritedModelIds.includes(item.id))
+			? highlight(fuse.search(searchTerm), "html").filter((item) => !favoritedModelIds.includes(item.id))
 			: searchableItems.filter((item) => !favoritedModelIds.includes(item.id))
 
 		// Combine favorited models with search results
 		return [...favoritedModels, ...searchResults]
 	}, [searchableItems, searchTerm, fuse, favoritedModelIds])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
+			} else {
+				handleModelChange(searchTerm)
+			}
+			setIsDropdownVisible(false)
+		},
+		[modelSearchResults, handleModelChange, searchTerm],
+	)
 
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
-					setIsDropdownVisible(false)
-				} else {
-					// User typed a custom model ID (e.g., @preset/something)
-					handleModelChange(searchTerm)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
-				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				break
-		}
-	}
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	const hasInfo = useMemo(() => {
 		try {
@@ -255,11 +243,11 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 	}, [searchTerm])
 
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
@@ -377,16 +365,11 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								{...createIconButtonProps("Clear search", () => {
+								{...createDivAsButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
 								})}
 								className="input-icon-button codicon codicon-close"
-								onKeyDown={createKeyboardActivationHandler(() => {
-									setSearchTerm("")
-									setIsDropdownVisible(true)
-								})}
-								role="button"
 								slot="end"
 								style={{
 									display: "flex",
@@ -394,7 +377,6 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 									alignItems: "center",
 									height: "100%",
 								}}
-								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>
@@ -410,10 +392,27 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 											handleModelChange(item.id)
 											setIsDropdownVisible(false)
 										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault()
+												handleModelChange(item.id)
+												setIsDropdownVisible(false)
+											}
+										}}
 										onMouseEnter={() => setSelectedIndex(index)}
-										ref={(el) => (itemRefs.current[index] = el)}>
+										ref={(el) => {
+											itemRefs.current[index] = el
+										}}
+										role="option"
+										tabIndex={-1}>
 										<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-											<span dangerouslySetInnerHTML={{ __html: item.html }} />
+											<span>
+												<HighlightedText
+													className="model-item-highlight"
+													regions={item._highlightRegions}
+													text={item.id}
+												/>
+											</span>
 											<StarIcon
 												isFavorite={isFavorite}
 												onClick={(e) => {

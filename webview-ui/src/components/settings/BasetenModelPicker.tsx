@@ -2,8 +2,9 @@ import { basetenDefaultModelId, basetenModels } from "@shared/api"
 import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
-import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
-import { createIconButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createDivAsButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
@@ -22,28 +23,25 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 	const [searchTerm, setSearchTerm] = useState(modeFields.basetenModelId || basetenDefaultModelId)
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		// Use dynamic models if available, otherwise fall back to static models
-		const modelInfo = dynamicBasetenModels?.[newModelId] || basetenModels[newModelId as keyof typeof basetenModels]
-
-		handleModeFieldsChange(
-			{
-				basetenModelId: { plan: "planModeBasetenModelId", act: "actModeBasetenModelId" },
-				basetenModelInfo: { plan: "planModeBasetenModelInfo", act: "actModeBasetenModelInfo" },
-			},
-			{
-				basetenModelId: newModelId,
-				basetenModelInfo: modelInfo,
-			},
-			currentMode,
-		)
-		setSearchTerm(newModelId)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			const modelInfo = dynamicBasetenModels?.[newModelId] || basetenModels[newModelId as keyof typeof basetenModels]
+			handleModeFieldsChange(
+				{
+					basetenModelId: { plan: "planModeBasetenModelId", act: "actModeBasetenModelId" },
+					basetenModelInfo: { plan: "planModeBasetenModelInfo", act: "actModeBasetenModelInfo" },
+				},
+				{ basetenModelId: newModelId, basetenModelInfo: modelInfo },
+				currentMode,
+			)
+			setSearchTerm(newModelId)
+		},
+		[dynamicBasetenModels, handleModeFieldsChange, currentMode],
+	)
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
 		return normalizeApiConfiguration(apiConfiguration, currentMode)
@@ -136,44 +134,35 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 			.filter((part) => part !== null && part !== "")
 	}, [])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
-
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
 				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				break
-		}
-	}
+			}
+		},
+		[modelSearchResults, handleModelChange],
+	)
+
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	const hasInfo = useMemo(() => {
 		return selectedModelInfo && selectedModelInfo.description
 	}, [selectedModelInfo])
 
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
@@ -216,18 +205,12 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								{...createIconButtonProps("Clear search", () => {
+								{...createDivAsButtonProps("Clear search", () => {
 									setSearchTerm("")
 									setIsDropdownVisible(true)
 								})}
 								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
-								onKeyDown={createKeyboardActivationHandler(() => {
-									setSearchTerm("")
-									setIsDropdownVisible(true)
-								})}
-								role="button"
 								slot="end"
-								tabIndex={0}
 							/>
 						)}
 					</VSCodeTextField>
@@ -249,10 +232,19 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 										handleModelChange(item.id)
 										setIsDropdownVisible(false)
 									}}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault()
+											handleModelChange(item.id)
+											setIsDropdownVisible(false)
+										}
+									}}
 									onMouseEnter={() => setSelectedIndex(index)}
 									ref={(el: HTMLDivElement | null) => {
 										itemRefs.current[index] = el
-									}}>
+									}}
+									role="option"
+									tabIndex={-1}>
 									{parseHighlightedText(item.html)}
 								</div>
 							))}

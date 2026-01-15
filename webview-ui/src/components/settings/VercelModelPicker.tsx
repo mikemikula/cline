@@ -3,11 +3,12 @@ import type { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import type React from "react"
-import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { createIconButtonProps } from "@/utils/interactiveProps"
+import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { HighlightedText, highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
@@ -26,27 +27,27 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 	// Vercel AI Gateway uses its own model fields
 	const [searchTerm, setSearchTerm] = useState(modeFields.vercelAiGatewayModelId || "")
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
-	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 
-	const handleModelChange = (newModelId: string) => {
-		setSearchTerm(newModelId)
-
-		// Vercel AI Gateway uses its own model fields
-		handleModeFieldsChange(
-			{
-				vercelAiGatewayModelId: { plan: "planModeVercelAiGatewayModelId", act: "actModeVercelAiGatewayModelId" },
-				vercelAiGatewayModelInfo: { plan: "planModeVercelAiGatewayModelInfo", act: "actModeVercelAiGatewayModelInfo" },
-			},
-			{
-				vercelAiGatewayModelId: newModelId,
-				vercelAiGatewayModelInfo: vercelAiGatewayModels[newModelId],
-			},
-			currentMode,
-		)
-	}
+	const handleModelChange = useCallback(
+		(newModelId: string) => {
+			setSearchTerm(newModelId)
+			handleModeFieldsChange(
+				{
+					vercelAiGatewayModelId: { plan: "planModeVercelAiGatewayModelId", act: "actModeVercelAiGatewayModelId" },
+					vercelAiGatewayModelInfo: {
+						plan: "planModeVercelAiGatewayModelInfo",
+						act: "actModeVercelAiGatewayModelInfo",
+					},
+				},
+				{ vercelAiGatewayModelId: newModelId, vercelAiGatewayModelInfo: vercelAiGatewayModels[newModelId] },
+				currentMode,
+			)
+		},
+		[handleModeFieldsChange, vercelAiGatewayModels, currentMode],
+	)
 
 	const { selectedModelId, selectedModelInfo } = useMemo(() => {
 		return {
@@ -105,36 +106,26 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 		return searchResults
 	}, [searchableItems, searchTerm, fuse])
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (!isDropdownVisible) {
-			return
-		}
+	const handleListboxSelect = useCallback(
+		(index: number) => {
+			if (index >= 0 && index < modelSearchResults.length) {
+				handleModelChange(modelSearchResults[index].id)
+			} else {
+				handleModelChange(searchTerm)
+			}
+			setIsDropdownVisible(false)
+		},
+		[modelSearchResults, handleModelChange, searchTerm],
+	)
 
-		switch (event.key) {
-			case "ArrowDown":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev < modelSearchResults.length - 1 ? prev + 1 : prev))
-				break
-			case "ArrowUp":
-				event.preventDefault()
-				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-				break
-			case "Enter":
-				event.preventDefault()
-				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
-					handleModelChange(modelSearchResults[selectedIndex].id)
-					setIsDropdownVisible(false)
-				} else {
-					handleModelChange(searchTerm)
-					setIsDropdownVisible(false)
-				}
-				break
-			case "Escape":
-				setIsDropdownVisible(false)
-				setSelectedIndex(-1)
-				break
-		}
-	}
+	const closeDropdown = useCallback(() => setIsDropdownVisible(false), [])
+
+	const { selectedIndex, setSelectedIndex, handleKeyDown } = useListboxNavigation({
+		itemCount: modelSearchResults.length,
+		isOpen: isDropdownVisible,
+		onSelect: handleListboxSelect,
+		onClose: closeDropdown,
+	})
 
 	const hasInfo = useMemo(() => {
 		try {
@@ -145,11 +136,11 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 	}, [modelIds, searchTerm])
 
 	useEffect(() => {
-		setSelectedIndex(-1)
+		setSelectedIndex(0)
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [searchTerm])
+	}, [searchTerm, setSelectedIndex])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
