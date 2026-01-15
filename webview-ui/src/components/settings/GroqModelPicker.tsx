@@ -6,7 +6,7 @@ import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
-import { createDivAsButtonProps } from "@/utils/interactiveProps"
+import { createDivAsButtonProps, createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { useListboxNavigation } from "@/utils/useListboxNavigation"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelsServiceClient } from "../../services/grpc-client"
@@ -226,13 +226,10 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 										handleModelChange(item.id)
 										setIsDropdownVisible(false)
 									}}
-									onKeyDown={(e) => {
-										if (e.key === "Enter" || e.key === " ") {
-											e.preventDefault()
-											handleModelChange(item.id)
-											setIsDropdownVisible(false)
-										}
-									}}
+									onKeyDown={createKeyboardActivationHandler(() => {
+										handleModelChange(item.id)
+										setIsDropdownVisible(false)
+									})}
 									onMouseEnter={() => setSelectedIndex(index)}
 									ref={(el: HTMLDivElement | null) => {
 										itemRefs.current[index] = el

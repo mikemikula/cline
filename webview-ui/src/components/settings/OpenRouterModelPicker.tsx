@@ -392,13 +392,6 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 											handleModelChange(item.id)
 											setIsDropdownVisible(false)
 										}}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" || e.key === " ") {
-												e.preventDefault()
-												handleModelChange(item.id)
-												setIsDropdownVisible(false)
-											}
-										}}
 										onMouseEnter={() => setSelectedIndex(index)}
 										ref={(el) => {
 											itemRefs.current[index] = el

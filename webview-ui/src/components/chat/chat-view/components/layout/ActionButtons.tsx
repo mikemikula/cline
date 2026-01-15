@@ -139,17 +139,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 						showScrollToBottom ? handleScrollToBottom : handleScrollToTop,
 					)}
 					appearance="icon"
-					className="text-lg text-(--vscode-primaryButton-foreground) bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_55%,transparent)] rounded-[3px] overflow-hidden cursor-pointer flex justify-center items-center flex-1 h-[25px] hover:bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_90%,transparent)] active:bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_70%,transparent)] border-0"
-					onKeyDown={(e) => {
-						if (e.key === "Enter" || e.key === " ") {
-							e.preventDefault()
-							if (showScrollToBottom) {
-								handleScrollToBottom()
-							} else {
-								handleScrollToTop()
-							}
-						}
-					}}>
+					className="text-lg text-(--vscode-primaryButton-foreground) bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_55%,transparent)] rounded-[3px] overflow-hidden cursor-pointer flex justify-center items-center flex-1 h-[25px] hover:bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_90%,transparent)] active:bg-[color-mix(in_srgb,var(--vscode-toolbar-hoverBackground)_70%,transparent)] border-0">
 					{showScrollToBottom ? (
 						<span className="codicon codicon-chevron-down" />
 					) : (
