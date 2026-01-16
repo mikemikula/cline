@@ -66,7 +66,7 @@ export const OptionsButtons = ({
 
 	const { selectedIndex: focusedIndex, handleKeyDown } = useListboxNavigation({
 		itemCount: options.length,
-		isOpen: isActive && !hasSelected,
+		isOpen: !!isActive && !hasSelected,
 		loop: false,
 		onSelect: handleSelect,
 	})
