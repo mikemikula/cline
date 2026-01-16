@@ -1,6 +1,6 @@
 import { McpMarketplaceItem, McpServer } from "@shared/mcp"
 import { StringRequest } from "@shared/proto/cline/common"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
@@ -15,7 +15,6 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 	const isInstalled = installedServers.some((server) => server.name === item.mcpId)
 	const [isDownloading, setIsDownloading] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-	const githubLinkRef = useRef<HTMLDivElement>(null)
 	const { onRelinquishControl } = useExtensionState()
 
 	useEffect(() => {
@@ -39,19 +38,21 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 				{`
 					.mcp-card {
 						cursor: pointer;
-						outline: none !important;
 					}
 					.mcp-card:hover {
 						background-color: var(--vscode-list-hoverBackground);
 					}
-					.mcp-card:focus {
-						outline: none !important;
+					.mcp-card:focus-visible {
+						outline: 2px solid var(--vscode-focusBorder);
+						outline-offset: 2px;
 					}
 				`}
 			</style>
 			<a
+				aria-label={`${item.name} - ${item.description}. Opens GitHub repository.`}
 				className="mcp-card"
 				href={item.githubUrl}
+				rel="noopener noreferrer"
 				style={{
 					padding: "14px 16px",
 					display: "flex",
@@ -60,7 +61,8 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 					cursor: isLoading ? "wait" : "pointer",
 					textDecoration: "none",
 					color: "inherit",
-				}}>
+				}}
+				target="_blank">
 				{/* Main container with logo and content */}
 				<div style={{ display: "flex", gap: "12px" }}>
 					{/* Logo */}
@@ -101,10 +103,13 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 								}}>
 								{item.name}
 							</h3>
-							<div
+							<StyledInstallButton
+								$isInstalled={isInstalled}
+								aria-label={isInstalled ? `${item.name} is installed` : `Install ${item.name}`}
+								disabled={isInstalled || isDownloading}
 								onClick={async (e) => {
-									e.preventDefault() // Prevent card click when clicking install
-									e.stopPropagation() // Stop event from bubbling up to parent link
+									e.preventDefault()
+									e.stopPropagation()
 									if (!isInstalled && !isDownloading) {
 										setIsDownloading(true)
 										try {
@@ -116,7 +121,6 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 												setError(response.error)
 											} else {
 												console.log("MCP download successful:", response)
-												// Clear any previous errors on success
 												setError(null)
 											}
 										} catch (error) {
@@ -125,12 +129,9 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 											setIsDownloading(false)
 										}
 									}
-								}}
-								style={{}}>
-								<StyledInstallButton $isInstalled={isInstalled} disabled={isInstalled || isDownloading}>
-									{isInstalled ? "Installed" : isDownloading ? "Installing..." : "Install"}
-								</StyledInstallButton>
-							</div>
+								}}>
+								{isInstalled ? "Installed" : isDownloading ? "Installing..." : "Install"}
+							</StyledInstallButton>
 						</div>
 
 						{/* Second row: metadata */}
@@ -146,8 +147,10 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 								rowGap: 0,
 							}}>
 							<a
+								aria-label={`View ${item.author} on GitHub`}
 								className="github-link"
 								href={githubAuthorUrl}
+								onClick={(e) => e.stopPropagation()}
 								onMouseEnter={(e) => {
 									e.currentTarget.style.opacity = "1"
 									e.currentTarget.style.color = "var(--link-active-foreground)"
@@ -156,6 +159,7 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 									e.currentTarget.style.opacity = "0.7"
 									e.currentTarget.style.color = "var(--vscode-foreground)"
 								}}
+								rel="noopener noreferrer"
 								style={{
 									display: "flex",
 									alignItems: "center",
@@ -164,8 +168,9 @@ const McpMarketplaceCard = ({ item, installedServers, setError }: McpMarketplace
 									opacity: 0.7,
 									textDecoration: "none",
 									border: "none !important",
-								}}>
-								<div ref={githubLinkRef} style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+								}}
+								target="_blank">
+								<div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
 									<span className="codicon codicon-github" style={{ fontSize: "14px" }} />
 									<span
 										style={{

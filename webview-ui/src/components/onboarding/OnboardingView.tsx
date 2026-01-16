@@ -10,6 +10,7 @@ import { Item, ItemContent, ItemDescription, ItemHeader, ItemMedia, ItemTitle } 
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { AccountServiceClient, StateServiceClient } from "@/services/grpc-client"
+import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import ApiConfigurationSection from "../settings/sections/ApiConfigurationSection"
 import { useApiConfigurationHandlers } from "../settings/utils/useApiConfigurationHandlers"
 import {
@@ -57,13 +58,19 @@ const ModelSelection = ({
 
 	// Model Item Component
 	const ModelItem = ({ id, model, isSelected }: { id: string; model: OnboardingModel; isSelected: boolean }) => {
+		const handleSelect = () => onSelectModel(id)
 		return (
 			<Item
+				aria-label={`Select model ${model.name || id}`}
+				aria-selected={isSelected}
 				className={cn("cursor-pointer hover:cursor-pointer", {
 					"bg-input-background/80 border border-button-background": isSelected,
 				})}
 				key={id}
-				onClick={() => onSelectModel(id)}
+				onClick={handleSelect}
+				onKeyDown={createKeyboardActivationHandler(handleSelect)}
+				role="option"
+				tabIndex={0}
 				variant="outline">
 				<ItemHeader className="flex flex-col w-full align-baseline">
 					<ItemTitle className="flex w-full justify-between">
@@ -118,8 +125,10 @@ const ModelSelection = ({
 		<div className="flex flex-col w-full items-center px-2">
 			<div className="flex w-full max-w-lg flex-col gap-6 my-4">
 				{modelGroups.map((group) => (
-					<div className="flex flex-col gap-3" key={group.group}>
-						<h4 className="text-sm font-bold text-foreground/70 uppercase mb-2">{group.group}</h4>
+					<div className="flex flex-col gap-3" key={group.group} role="listbox">
+						<h4 className="text-sm font-bold text-foreground/70 uppercase mb-2" id={`model-group-${group.group}`}>
+							{group.group}
+						</h4>
 						{group.models.map((model) => (
 							<ModelItem id={model.id} isSelected={selectedModelId === model.id} key={model.id} model={model} />
 						))}
@@ -199,17 +208,23 @@ type UserTypeSelectionProps = {
 
 const UserTypeSelectionStep = ({ userType, onSelectUserType }: UserTypeSelectionProps) => (
 	<div className="flex flex-col w-full items-center">
-		<div className="flex w-full max-w-lg flex-col gap-3 my-2">
+		<div aria-label="User type selection" className="flex w-full max-w-lg flex-col gap-3 my-2" role="listbox">
 			{USER_TYPE_SELECTIONS.map((option) => {
 				const isSelected = userType === option.type
+				const handleSelect = () => onSelectUserType(option.type)
 
 				return (
 					<Item
+						aria-label={option.title}
+						aria-selected={isSelected}
 						className={cn("cursor-pointer hover:cursor-pointer w-full", {
 							"bg-input-background/50 border border-input-foreground/30": isSelected,
 						})}
 						key={option.type}
-						onClick={() => onSelectUserType(option.type)}>
+						onClick={handleSelect}
+						onKeyDown={createKeyboardActivationHandler(handleSelect)}
+						role="option"
+						tabIndex={0}>
 						<ItemMedia className="[&_svg]:stroke-button-background" variant="icon">
 							{isSelected ? <CircleCheckIcon className="stroke-1.5" /> : <CircleIcon className="stroke-1" />}
 						</ItemMedia>
