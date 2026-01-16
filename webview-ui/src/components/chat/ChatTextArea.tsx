@@ -47,7 +47,6 @@ import {
 	slashCommandRegexGlobal,
 	validateSlashCommand,
 } from "@/utils/slash-commands"
-import { useToolbarNavigation } from "@/utils/useToolbarNavigation"
 import { validateApiConfiguration, validateModelId } from "@/utils/validate"
 import ClineRulesToggleModal from "../cline-rules/ClineRulesToggleModal"
 import ServersToggleModal from "./ServersToggleModal"
@@ -269,12 +268,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const buttonRef = useRef<HTMLDivElement>(null)
 		const [shownTooltipMode, _setShownTooltipMode] = useState<Mode | null>(null)
 
-		// Toolbar navigation for ButtonGroup (Context, Files, Servers, Rules, Model)
-		const {
-			getItemProps: getToolbarItemProps,
-			setItemRef: setToolbarItemRef,
-			containerProps: toolbarContainerProps,
-		} = useToolbarNavigation({ itemCount: 5 })
 		const [pendingInsertions, setPendingInsertions] = useState<string[]>([])
 		const [showUnsupportedFileError, setShowUnsupportedFileError] = useState(false)
 		const unsupportedFileTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -1668,70 +1661,49 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<div className="relative flex-1 min-w-0 h-5">
 						{/* ButtonGroup - always in DOM but visibility controlled */}
 						<ButtonGroup
-							{...toolbarContainerProps}
 							aria-label="Chat actions"
 							className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
 							<Tooltip>
 								<TooltipContent>Add Context</TooltipContent>
 								<TooltipTrigger asChild>
-									<div
-										{...getToolbarItemProps(0)}
-										ref={(el) => {
-											if (el) {
-												setToolbarItemRef(0, {
-													focus: () => (el.querySelector("vscode-button") as HTMLElement)?.focus(),
-												})
-											}
-										}}>
-										<VSCodeButton
-											{...createIconButtonProps("Add Context", handleContextButtonClick)}
-											appearance="icon"
-											className="p-0 m-0 flex items-center"
-											data-testid="context-button"
-											onClick={handleContextButtonClick}
-											tabIndex={getToolbarItemProps(0).tabIndex}>
-											<ButtonContainer>
-												<AtSignIcon size={12} />
-											</ButtonContainer>
-										</VSCodeButton>
-									</div>
+									<VSCodeButton
+										{...createIconButtonProps("Add Context", handleContextButtonClick)}
+										appearance="icon"
+										className="p-0 m-0 flex items-center"
+										data-testid="context-button"
+										onClick={handleContextButtonClick}
+										tabIndex={0}>
+										<ButtonContainer>
+											<AtSignIcon size={12} />
+										</ButtonContainer>
+									</VSCodeButton>
 								</TooltipTrigger>
 							</Tooltip>
 
 							<Tooltip>
 								<TooltipContent>Add Files & Images</TooltipContent>
 								<TooltipTrigger asChild>
-									<div
-										{...getToolbarItemProps(1)}
-										ref={(el) => {
-											if (el) {
-												setToolbarItemRef(1, {
-													focus: () => (el.querySelector("vscode-button") as HTMLElement)?.focus(),
-												})
+									<VSCodeButton
+										{...createIconButtonProps("Add Files & Images", () => {
+											if (!shouldDisableFilesAndImages) {
+												onSelectFilesAndImages()
 											}
-										}}>
-										<VSCodeButton
-											{...createIconButtonProps("Add Files & Images", () => {
-												if (!shouldDisableFilesAndImages) {
-													onSelectFilesAndImages()
-												}
-											})}
-											appearance="icon"
-											className="p-0 m-0 flex items-center"
-											data-testid="files-button"
-											disabled={shouldDisableFilesAndImages}
-											tabIndex={getToolbarItemProps(1).tabIndex}>
-											<ButtonContainer>
-												<PlusIcon size={13} />
-											</ButtonContainer>
-										</VSCodeButton>
-									</div>
+										})}
+										appearance="icon"
+										className="p-0 m-0 flex items-center"
+										data-testid="files-button"
+										disabled={shouldDisableFilesAndImages}
+										tabIndex={0}>
+										<ButtonContainer>
+											<PlusIcon size={13} />
+										</ButtonContainer>
+									</VSCodeButton>
 								</TooltipTrigger>
 							</Tooltip>
 
-							<ServersToggleModal {...getToolbarItemProps(2)} ref={(handle) => setToolbarItemRef(2, handle)} />
+							<ServersToggleModal tabIndex={0} />
 
-							<ClineRulesToggleModal {...getToolbarItemProps(3)} ref={(handle) => setToolbarItemRef(3, handle)} />
+							<ClineRulesToggleModal tabIndex={0} />
 
 							<ModelContainer ref={modelSelectorRef}>
 								<ModelPickerModal
@@ -1744,10 +1716,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 												"Select Model / API Provider",
 												handleModelButtonClick,
 											)}
-											{...getToolbarItemProps(4)}
 											disabled={false}
 											isActive={showModelSelector}
-											ref={(el) => setToolbarItemRef(4, el)}>
+											tabIndex={0}>
 											<ModelButtonContent className="text-xs">{modelDisplayName}</ModelButtonContent>
 										</ModelDisplayButton>
 									</ModelButtonWrapper>
