@@ -7,6 +7,7 @@ import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import MarkdownBlock from "@/components/common/MarkdownBlock"
 import { DropdownContainer } from "@/components/settings/ApiOptions"
 import { updateSetting } from "@/components/settings/utils/settingsHandlers"
+import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { useExtensionState } from "../../../context/ExtensionStateContext"
 import ImagePreview from "./ImagePreview"
 import LinkPreview from "./LinkPreview"
@@ -217,11 +218,16 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 		return (
 			<ResponseContainer>
 				<ResponseHeader
+					aria-expanded={isExpanded}
+					aria-label={isExpanded ? "Collapse MCP response" : "Expand MCP response"}
 					onClick={toggleExpand}
+					onKeyDown={createKeyboardActivationHandler(toggleExpand)}
+					role="button"
 					style={{
 						borderBottom: isExpanded ? "1px dashed var(--vscode-editorGroup-border)" : "none",
 						marginBottom: isExpanded ? "8px" : "0px",
-					}}>
+					}}
+					tabIndex={0}>
 					<div className="header-title">
 						<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}></span>
 						Response
@@ -245,7 +251,13 @@ const McpResponseDisplay: React.FC<McpResponseDisplayProps> = ({ responseText })
 		// Fallback for critical rendering errors
 		return (
 			<ResponseContainer>
-				<ResponseHeader onClick={toggleExpand}>
+				<ResponseHeader
+					aria-expanded={isExpanded}
+					aria-label={isExpanded ? "Collapse MCP response" : "Expand MCP response"}
+					onClick={toggleExpand}
+					onKeyDown={createKeyboardActivationHandler(toggleExpand)}
+					role="button"
+					tabIndex={0}>
 					<div className="header-title">
 						<span className={`codicon codicon-chevron-${isExpanded ? "down" : "right"} header-icon`}></span>
 						Response (Error)

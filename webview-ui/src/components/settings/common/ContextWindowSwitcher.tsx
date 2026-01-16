@@ -1,5 +1,6 @@
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useMemo } from "react"
+import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
 
 interface ContextWindowSwitcherProps {
 	selectedModelId: string
@@ -41,7 +42,9 @@ export const ContextWindowSwitcher = ({
 	return (
 		<div style={{ marginBottom: 2 }}>
 			<VSCodeLink
+				aria-label={switcherInfo.linkText}
 				onClick={() => onModelChange(switcherInfo.alternate)}
+				onKeyDown={createKeyboardActivationHandler(() => onModelChange(switcherInfo.alternate))}
 				style={{
 					display: "inline",
 					fontSize: "10.5px",

@@ -53,7 +53,9 @@ const AccountView = ({ onDone, clineUser, organizations, activeOrganization }: A
 				<h3 className={cn("text-(--vscode-foreground) m-0", titleColor)}>
 					Account {environment !== "production" ? ` - ${environment} environment` : ""}
 				</h3>
-				<VSCodeButton onClick={onDone}>Done</VSCodeButton>
+				<VSCodeButton aria-label="Close account view" onClick={onDone}>
+					Done
+				</VSCodeButton>
 			</div>
 			<div className="grow overflow-hidden pr-[8px] flex flex-col">
 				<div className="h-full mb-1.5">

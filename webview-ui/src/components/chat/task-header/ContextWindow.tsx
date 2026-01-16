@@ -35,6 +35,7 @@ const ConfirmationDialog = memo<{
 		<span className="flex gap-1">
 			<VSCodeButton
 				appearance="secondary"
+				aria-label="Cancel compact task"
 				className="text-sm"
 				onClick={onCancel}
 				title="No, keep the task as is"
@@ -43,6 +44,7 @@ const ConfirmationDialog = memo<{
 			</VSCodeButton>
 			<VSCodeButton
 				appearance="primary"
+				aria-label="Confirm compact task"
 				autoFocus={true}
 				className="text-sm"
 				onClick={onConfirm}

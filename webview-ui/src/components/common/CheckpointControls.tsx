@@ -7,6 +7,7 @@ import styled from "styled-components"
 import { CODE_BLOCK_BG_COLOR } from "@/components/common/CodeBlock"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { CheckpointsServiceClient } from "@/services/grpc-client"
+import { createEscapeHandler } from "@/utils/interactiveProps"
 
 interface CheckpointOverlayProps {
 	messageTs?: number
@@ -118,10 +119,18 @@ export const CheckpointOverlay = ({ messageTs }: CheckpointOverlayProps) => {
 		setHasMouseEntered(false)
 	}
 
+	const handleEscape = createEscapeHandler(() => {
+		if (showRestoreConfirm) {
+			setShowRestoreConfirm(false)
+			setHasMouseEntered(false)
+		}
+	})
+
 	return (
-		<CheckpointControls className="hover:opacity-100" onMouseLeave={handleControlsMouseLeave}>
+		<CheckpointControls className="hover:opacity-100" onKeyDown={handleEscape} onMouseLeave={handleControlsMouseLeave}>
 			<VSCodeButton
 				appearance="secondary"
+				aria-label="Compare checkpoint"
 				disabled={compareDisabled}
 				onClick={async () => {
 					setCompareDisabled(true)
@@ -144,6 +153,8 @@ export const CheckpointOverlay = ({ messageTs }: CheckpointOverlayProps) => {
 			<div ref={containerRef} style={{ position: "relative" }}>
 				<VSCodeButton
 					appearance="secondary"
+					aria-expanded={showRestoreConfirm}
+					aria-label="Restore checkpoint"
 					onClick={() => setShowRestoreConfirm(true)}
 					style={{ cursor: "pointer" }}
 					title="Restore">
@@ -153,6 +164,7 @@ export const CheckpointOverlay = ({ messageTs }: CheckpointOverlayProps) => {
 					<RestoreConfirmTooltip onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} ref={tooltipRef}>
 						<RestoreOption>
 							<VSCodeButton
+								aria-label="Restore Task and Workspace"
 								disabled={restoreBothDisabled}
 								onClick={handleRestoreBoth}
 								style={{
@@ -164,6 +176,7 @@ export const CheckpointOverlay = ({ messageTs }: CheckpointOverlayProps) => {
 						</RestoreOption>
 						<RestoreOption>
 							<VSCodeButton
+								aria-label="Restore Task Only"
 								disabled={restoreTaskDisabled}
 								onClick={handleRestoreTask}
 								style={{
@@ -175,6 +188,7 @@ export const CheckpointOverlay = ({ messageTs }: CheckpointOverlayProps) => {
 						</RestoreOption>
 						<RestoreOption>
 							<VSCodeButton
+								aria-label="Restore Workspace Only"
 								disabled={restoreWorkspaceDisabled}
 								onClick={handleRestoreWorkspace}
 								style={{

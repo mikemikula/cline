@@ -74,6 +74,14 @@ export const ToolGroupRenderer = memo(({ messages, allMessages }: ToolGroupRende
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<Button
+										aria-expanded={isExpandable ? isItemExpanded : undefined}
+										aria-label={
+											isExpandable
+												? isItemExpanded
+													? `Collapse ${info.displayText || cleanPathPrefix(info.path)}`
+													: `Expand ${info.displayText || cleanPathPrefix(info.path)}`
+												: `Open ${info.displayText || cleanPathPrefix(info.path)}`
+										}
 										className="flex items-center gap-1.5 cursor-pointer text-[13px] text-description py-0.5 hover:text-link min-w-0 max-w-full px-0"
 										onClick={() => (isExpandable ? handleItemToggle(tool.ts) : handleOpenFile(info.path))}
 										size="icon"

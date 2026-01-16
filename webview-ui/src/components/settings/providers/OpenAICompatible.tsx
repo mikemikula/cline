@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Tooltip } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ModelsServiceClient } from "@/services/grpc-client"
+import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND } from "@/utils/vscStyles"
 import { ApiKeyField } from "../common/ApiKeyField"
 import { BaseUrlField } from "../common/BaseUrlField"
@@ -183,6 +184,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 									/>
 									<VSCodeButton
 										appearance="secondary"
+										aria-label={`Remove header ${key}`}
 										disabled={remoteConfigSettings?.openAiHeaders !== undefined}
 										onClick={() => {
 											const { [key]: _, ...rest } = apiConfiguration?.openAiHeaders ?? {}
@@ -230,14 +232,19 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 			</VSCodeCheckbox>
 
 			<div
+				aria-expanded={modelConfigurationSelected}
+				aria-label={modelConfigurationSelected ? "Collapse model configuration" : "Expand model configuration"}
 				onClick={() => setModelConfigurationSelected((val) => !val)}
+				onKeyDown={createKeyboardActivationHandler(() => setModelConfigurationSelected((val) => !val))}
+				role="button"
 				style={{
 					color: getAsVar(VSC_DESCRIPTION_FOREGROUND),
 					display: "flex",
 					margin: "10px 0",
 					cursor: "pointer",
 					alignItems: "center",
-				}}>
+				}}
+				tabIndex={0}>
 				<span
 					className={`codicon ${modelConfigurationSelected ? "codicon-chevron-down" : "codicon-chevron-right"}`}
 					style={{

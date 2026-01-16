@@ -75,6 +75,7 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 			<form onSubmit={handleSubmit}>
 				<div className="mb-2">
 					<VSCodeTextField
+						aria-label="Server Name"
 						className="w-full"
 						disabled={isSubmitting}
 						onChange={(e) => {
@@ -89,6 +90,7 @@ const AddRemoteServerForm = ({ onServerAdded }: { onServerAdded: () => void }) =
 
 				<div className="mb-2">
 					<VSCodeTextField
+						aria-label="Server URL"
 						className="w-full mr-4"
 						disabled={isSubmitting}
 						onChange={(e) => {

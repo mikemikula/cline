@@ -21,6 +21,7 @@ export const CreditBalance = ({ balance, fetchCreditBalance, creditUrl, lastFetc
 				{balance === null ? <span>----</span> : <StyledCreditDisplay balance={balance} />}
 				<VSCodeButton
 					appearance="icon"
+					aria-label="Refresh credit balance"
 					className={`mt-1 ${isLoading ? "animate-spin" : ""}`}
 					disabled={isLoading}
 					onClick={fetchCreditBalance}>

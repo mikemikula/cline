@@ -29,6 +29,7 @@ export const ApiKeyField = ({
 	return (
 		<div>
 			<VSCodeTextField
+				aria-label={`${providerName} API Key`}
 				onInput={(e: any) => setLocalValue(e.target.value)}
 				placeholder={placeholder}
 				required={true}

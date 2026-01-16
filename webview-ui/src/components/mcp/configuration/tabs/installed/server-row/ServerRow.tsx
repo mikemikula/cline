@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { McpServiceClient } from "@/services/grpc-client"
+import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
 import { getMcpServerDisplayName } from "@/utils/mcp"
 import McpResourceRow from "./McpResourceRow"
 import McpToolRow from "./McpToolRow"
@@ -202,85 +203,102 @@ const ServerRow = ({
 		return remoteServer?.alwaysEnabled === true
 	})()
 
-	return (
-		<div className="mb-2.5">
-			<div
-				className={cn("flex bg-code-block-background p-2 gap-4 items-center", {
-					"cursor-pointer": !server.error && isExpandable,
-				})}
-				onClick={handleRowClick}>
-				{!server.error && isExpandable && (
-					<span
-						className={cn("mr-2 codicon", {
-							"codicon-chevron-right": !isExpanded,
-							"codicon-chevron-down": isExpanded,
-						})}
-					/>
-				)}
-				<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center">
-					{getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)}
-				</span>
-				{/* Collapsed view controls */}
-				{!server.error && (
-					<Button
-						disabled={server.status === "connecting" || isRestarting || server.disabled}
-						onClick={(e) => {
-							e.stopPropagation()
-							handleRestart()
-						}}
-						size="icon"
-						title="Restart Server"
-						variant="icon">
-						<RefreshCcwIcon />
-					</Button>
-				)}
-				{!server.error && hasTrashIcon && (
-					<Button
-						disabled={isDeleting}
-						onClick={(e) => {
-							e.stopPropagation()
-							handleDelete()
-						}}
-						size="icon"
-						title="Delete Server"
-						variant="icon">
-						<Trash2Icon />
-					</Button>
-				)}
-				{/* Toggle Switch */}
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div className="flex items-center gap-2">
-							<Switch
-								checked={!server.disabled}
-								disabled={isAlwaysEnabled}
-								key={server.name}
-								onClick={(e) => {
-									e.stopPropagation()
-									handleToggleMcpServer()
-								}}
-							/>
-							{isAlwaysEnabled && <i className="codicon codicon-lock text-description text-sm" />}
-						</div>
-					</TooltipTrigger>
-					<TooltipContent className="max-w-xs" hidden={!isAlwaysEnabled} side="top">
-						This server can't be disabled because it is enabled by your organization
-					</TooltipContent>
-				</Tooltip>
-				<div
-					className={cn("h-2 w-2 ml-0.5 rounded-full", {
-						"bg-success": server.status === "connected",
-						"bg-warning": server.status === "connecting",
-						"bg-error": server.status === "disconnected",
+	const isInteractive = !server.error && isExpandable
+	const displayName = getMcpServerDisplayName(server.name, mcpMarketplaceCatalog)
+
+	const rowContent = (
+		<>
+			{isInteractive && (
+				<span
+					className={cn("mr-2 codicon", {
+						"codicon-chevron-right": !isExpanded,
+						"codicon-chevron-down": isExpanded,
 					})}
 				/>
-			</div>
+			)}
+			<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center">{displayName}</span>
+			{/* Collapsed view controls */}
+			{!server.error && (
+				<Button
+					aria-label="Restart Server"
+					disabled={server.status === "connecting" || isRestarting || server.disabled}
+					onClick={(e) => {
+						e.stopPropagation()
+						handleRestart()
+					}}
+					size="icon"
+					title="Restart Server"
+					variant="icon">
+					<RefreshCcwIcon />
+				</Button>
+			)}
+			{!server.error && hasTrashIcon && (
+				<Button
+					aria-label="Delete Server"
+					disabled={isDeleting}
+					onClick={(e) => {
+						e.stopPropagation()
+						handleDelete()
+					}}
+					size="icon"
+					title="Delete Server"
+					variant="icon">
+					<Trash2Icon />
+				</Button>
+			)}
+			{/* Toggle Switch */}
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<div className="flex items-center gap-2">
+						<Switch
+							checked={!server.disabled}
+							disabled={isAlwaysEnabled}
+							key={server.name}
+							onClick={(e) => {
+								e.stopPropagation()
+								handleToggleMcpServer()
+							}}
+						/>
+						{isAlwaysEnabled && <i className="codicon codicon-lock text-description text-sm" />}
+					</div>
+				</TooltipTrigger>
+				{isAlwaysEnabled && <TooltipContent>This server is required and cannot be disabled</TooltipContent>}
+			</Tooltip>
+			{/* Status indicators */}
+			{server.error ? (
+				<span className="codicon codicon-error text-error" title={server.error} />
+			) : server.status === "connecting" || isRestarting ? (
+				<span className="codicon codicon-loading animate-spin opacity-60" />
+			) : server.disabled ? (
+				<span className="codicon codicon-circle-slash opacity-60" title="Disabled" />
+			) : (
+				<span className="codicon codicon-check text-success" title="Connected" />
+			)}
+		</>
+	)
+
+	return (
+		<div className="mb-2.5">
+			{isInteractive ? (
+				<button
+					aria-expanded={isExpanded}
+					aria-label={isExpanded ? `Collapse ${displayName}` : `Expand ${displayName}`}
+					className="flex bg-code-block-background p-2 gap-4 items-center cursor-pointer w-full text-left"
+					onClick={handleRowClick}
+					onKeyDown={createKeyboardActivationHandler(handleRowClick)}
+					type="button">
+					{rowContent}
+				</button>
+			) : (
+				<div className="flex bg-code-block-background p-2 gap-4 items-center">{rowContent}</div>
+			)}
 
 			{server.error ? (
 				<div className="text-sm bg-text-block-background rounded-b-sm">
 					<div className="text-failed-icon mb-2 px-2.5 break-words">{server.error}</div>
 					{server.oauthRequired && server.oauthAuthStatus === "unauthenticated" ? (
 						<Button
+							aria-label="Authenticate MCP Server"
 							className="m-2.5 mt-0 max-w-[calc(100%-20px)]"
 							onClick={(e) => {
 								e.stopPropagation()
@@ -291,6 +309,7 @@ const ServerRow = ({
 						</Button>
 					) : (
 						<Button
+							aria-label="Retry Connection"
 							className="m-2.5 mt-0 max-w-[calc(100%-20px)]"
 							disabled={server.status === "connecting"}
 							onClick={handleRestart}
@@ -363,6 +382,7 @@ const ServerRow = ({
 							</VSCodeDropdown>
 						</div>
 						<Button
+							aria-label="Restart Server"
 							className="w-[calc(100%-14px)] mt-1 mx-1.5 mb-3"
 							disabled={server.status === "connecting" || isRestarting}
 							onClick={handleRestart}

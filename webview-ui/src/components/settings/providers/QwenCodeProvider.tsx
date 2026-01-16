@@ -30,6 +30,7 @@ export const QwenCodeProvider = ({ showModelOptions, isPopup, currentMode }: Qwe
 		<div>
 			<h3 style={{ color: "var(--vscode-foreground)", margin: "8px 0" }}>Qwen Code API Configuration</h3>
 			<VSCodeTextField
+				aria-label="OAuth Credentials Path"
 				onInput={(e: any) => handleFieldChange("qwenCodeOauthPath", e.target.value)}
 				placeholder="~/.qwen/oauth_creds.json"
 				style={{ width: "100%" }}

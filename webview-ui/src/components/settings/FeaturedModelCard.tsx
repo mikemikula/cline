@@ -1,5 +1,6 @@
 import React from "react"
 import styled from "styled-components"
+import { createKeyboardActivationHandler } from "@/utils/interactiveProps"
 
 export interface FeaturedModelCardProps {
 	modelId: string
@@ -9,17 +10,28 @@ export interface FeaturedModelCardProps {
 	label: string
 }
 
-const CardContainer = styled.div<{ isSelected: boolean }>`
+const CardContainer = styled.button<{ isSelected: boolean }>`
 	padding: 2px 4px;
 	margin-bottom: 2px;
 	border-radius: 3px;
 	border: 1px solid var(--vscode-textLink-foreground);
 	opacity: ${(props) => (props.isSelected ? 1 : 0.6)};
 	cursor: pointer;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	width: 100%;
 
-	&:hover {
+	&:hover,
+	&:focus-visible {
 		background-color: var(--vscode-list-hoverBackground);
 		opacity: 1;
+	}
+
+	&:focus-visible {
+		outline: 1px solid var(--vscode-focusBorder);
+		outline-offset: 1px;
 	}
 `
 
@@ -52,7 +64,13 @@ const Description = styled.div`
 
 const FeaturedModelCard: React.FC<FeaturedModelCardProps> = ({ modelId, description, onClick, isSelected, label }) => {
 	return (
-		<CardContainer isSelected={isSelected} onClick={onClick}>
+		<CardContainer
+			aria-label={`Select ${modelId} model`}
+			aria-pressed={isSelected}
+			isSelected={isSelected}
+			onClick={onClick}
+			onKeyDown={createKeyboardActivationHandler(onClick)}
+			type="button">
 			<ModelHeader>
 				<ModelName>{modelId}</ModelName>
 				<Label>{label}</Label>

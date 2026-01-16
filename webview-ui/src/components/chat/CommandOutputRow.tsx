@@ -233,6 +233,7 @@ export const CommandOutputRow = memo(
 							<div className="flex items-center gap-2 shrink-0">
 								{showCancelButton && (
 									<Button
+										aria-label={isBackgroundExec ? "Cancel command" : "Stop command"}
 										onClick={(e) => {
 											e.stopPropagation()
 											if (isBackgroundExec) {

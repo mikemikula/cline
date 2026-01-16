@@ -48,6 +48,7 @@ const ConfigureServersView = () => {
 			<div style={{ marginBottom: "20px", marginTop: 10 }}>
 				<VSCodeButton
 					appearance="secondary"
+					aria-label="Configure MCP Servers"
 					onClick={() => {
 						McpServiceClient.openMcpSettings(EmptyRequest.create({})).catch((error) => {
 							console.error("Error opening MCP settings:", error)
@@ -59,7 +60,10 @@ const ConfigureServersView = () => {
 				</VSCodeButton>
 
 				<div style={{ textAlign: "center" }}>
-					<VSCodeLink onClick={() => navigateToSettings("features")} style={{ fontSize: "12px" }}>
+					<VSCodeLink
+						aria-label="Advanced MCP Settings"
+						onClick={() => navigateToSettings("features")}
+						style={{ fontSize: "12px" }}>
 						Advanced MCP Settings
 					</VSCodeLink>
 				</div>

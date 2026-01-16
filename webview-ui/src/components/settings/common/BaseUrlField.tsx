@@ -48,6 +48,7 @@ export const BaseUrlField = ({
 
 			{isEnabled && (
 				<VSCodeTextField
+					aria-label={label || "Custom base URL"}
 					disabled={disabled}
 					onInput={(e: any) => setLocalValue(e.target.value.trim())}
 					placeholder={placeholder}

@@ -145,6 +145,7 @@ export const LMStudioProvider = ({ currentMode }: LMStudioProviderProps) => {
 
 			<div className="font-semibold">Context Window</div>
 			<VSCodeTextField
+				aria-label="Context window size (read-only)"
 				className="w-full pointer-events-none"
 				disabled={true}
 				title="Not editable - the value is returned by the connected endpoint"

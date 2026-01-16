@@ -30,6 +30,8 @@ export const ThinkingRow = memo(({ showTitle = false, reasoningContent, isVisibl
 		<div className="ml-1">
 			{showTitle ? (
 				<Button
+					aria-expanded={isExpanded}
+					aria-label={isExpanded ? "Collapse thinking content" : "Expand thinking content"}
 					className="inline-flex justify-baseline gap-0.5 text-left select-none cursor-pointer text-description px-0 w-full"
 					onClick={onToggle}
 					variant="icon">
@@ -43,6 +45,8 @@ export const ThinkingRow = memo(({ showTitle = false, reasoningContent, isVisibl
 
 			{isExpanded && (
 				<Button
+					aria-expanded={isExpanded}
+					aria-label={showTitle ? "Collapse thinking content" : "Thinking content"}
 					className={cn(
 						"flex gap-0 overflow-hidden w-full min-w-0 max-h-0 opacity-0 items-baseline justify-baseline text-left p-0",
 						"disabled:cursor-text disabled:opacity-100",

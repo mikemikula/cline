@@ -17,6 +17,7 @@ interface DebouncedTextFieldProps {
 	children?: React.ReactNode
 	disabled?: boolean
 	className?: string
+	"aria-label"?: string
 }
 
 /**
