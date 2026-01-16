@@ -17,6 +17,7 @@ interface ToolbarItemProps {
 	tabIndex: number
 	onKeyDown: React.KeyboardEventHandler<HTMLElement>
 	onFocus: () => void
+	ref: (el: FocusableRef) => void
 }
 
 interface UseToolbarNavigationResult {
@@ -76,22 +77,28 @@ export function useToolbarNavigation({
 		[itemCount, loop, orientation, navigateToIndex],
 	)
 
-	const setItemRef = useCallback((index: number, el: FocusableRef) => {
-		itemRefs.current[index] = el
-	}, [])
-
 	const keyHandlers = useMemo(
 		() => Array.from({ length: itemCount }, (_, i) => createItemKeyHandler(i)),
 		[itemCount, createItemKeyHandler],
 	)
 
+	const setItemRef = useCallback((index: number, el: FocusableRef) => {
+		itemRefs.current[index] = el
+	}, [])
+
+	const refCallbacks = useMemo(
+		() => Array.from({ length: itemCount }, (_, i) => (el: FocusableRef) => setItemRef(i, el)),
+		[itemCount, setItemRef],
+	)
+
 	const getItemProps = useCallback(
 		(index: number): ToolbarItemProps => ({
-			tabIndex: focusedIndex === index ? 0 : -1,
+			tabIndex: 0,
 			onKeyDown: keyHandlers[index],
 			onFocus: () => setFocusedIndex(index),
+			ref: refCallbacks[index],
 		}),
-		[focusedIndex, keyHandlers],
+		[keyHandlers, refCallbacks],
 	)
 
 	return {

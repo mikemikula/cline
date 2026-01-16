@@ -3,7 +3,6 @@ import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TaskServiceClient } from "@/services/grpc-client"
-import { useToolbarNavigation } from "@/utils/useToolbarNavigation"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 
 const McpServerIcon = ({ className, size }: { className?: string; size?: number }) => (
@@ -63,38 +62,29 @@ export const Navbar = () => {
 		[navigateToAccount, navigateToChat, navigateToHistory, navigateToMcp, navigateToSettings],
 	)
 
-	const { getItemProps, setItemRef, containerProps } = useToolbarNavigation({ itemCount: SETTINGS_TABS.length })
-
 	return (
 		<nav
-			{...containerProps}
 			aria-label="Main navigation"
-			className="flex-none inline-flex justify-end bg-transparent gap-2 mb-1 z-10 border-none items-center mr-4!"
+			className="flex-none flex justify-end bg-transparent gap-2 py-2 px-4 z-10 border-none items-center w-full"
 			id="cline-navbar-container">
-			{SETTINGS_TABS.map((tab, index) => {
-				const itemProps = getItemProps(index)
-				return (
-					<Tooltip key={`navbar-tooltip-${tab.id}`}>
-						<TooltipContent side="bottom">{tab.tooltip}</TooltipContent>
-						<TooltipTrigger asChild>
-							<Button
-								aria-label={tab.tooltip}
-								className="p-0 h-7"
-								data-testid={`tab-${tab.id}`}
-								onClick={() => tab.navigate()}
-								onFocus={itemProps.onFocus}
-								onKeyDown={itemProps.onKeyDown}
-								ref={(el) => setItemRef(index, el)}
-								size="icon"
-								tabIndex={itemProps.tabIndex}
-								type="button"
-								variant="icon">
-								<tab.icon className="stroke-1 [svg]:size-4" size={18} />
-							</Button>
-						</TooltipTrigger>
-					</Tooltip>
-				)
-			})}
+			{SETTINGS_TABS.map((tab) => (
+				<Tooltip key={`navbar-tooltip-${tab.id}`}>
+					<TooltipContent side="bottom">{tab.tooltip}</TooltipContent>
+					<TooltipTrigger asChild>
+						<Button
+							aria-label={tab.tooltip}
+							className="p-0 h-7"
+							data-testid={`tab-${tab.id}`}
+							onClick={() => tab.navigate()}
+							size="icon"
+							tabIndex={0}
+							type="button"
+							variant="icon">
+							<tab.icon className="stroke-1 [svg]:size-4" size={18} />
+						</Button>
+					</TooltipTrigger>
+				</Tooltip>
+			))}
 		</nav>
 	)
 }
