@@ -110,12 +110,10 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([]) // For scrollIntoView
 	const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 
-	// Focus management (combines focus trap, restoration, and Escape key handling)
 	const { triggerRef, containerRef: popupContainerRef } = useModal<HTMLDivElement, HTMLDivElement>(isOpen, () =>
 		onOpenChange(false),
 	)
 
-	// Get current provider from config - use activeEditMode when in split mode
 	const effectiveMode = planActSeparateModelsSetting ? activeEditMode : currentMode
 	const { selectedProvider, selectedModelId, selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, effectiveMode)
 
@@ -420,7 +418,6 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		onClose: closeModal,
 	})
 
-	// Reset selectedIndex and clear refs when search/provider changes
 	useEffect(() => {
 		setSelectedIndex(-1)
 		itemRefs.current = []
@@ -465,7 +462,6 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		}
 	}, [isOpen, viewportWidth, viewportHeight])
 
-	// Handle click outside to close (custom logic for provider dropdown portal)
 	useEffect(() => {
 		if (!isOpen) {
 			return
@@ -495,9 +491,6 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		}
 	}, [isOpen, onOpenChange, popupContainerRef, triggerRef])
 
-	// Note: Escape key handling is provided by useModal hook
-
-	// Close modal when navigating to other views (settings, MCP, history, account)
 	useEffect(() => {
 		if (isOpen && (showSettings || showMcp || showHistory || showAccount)) {
 			onOpenChange(false)
@@ -530,7 +523,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 				{children}
 			</div>
 
-			{/* Modal - rendered via portal with fixed positioning */}
+			{}
 			{isOpen &&
 				createPortal(
 					<PopupModalContainer

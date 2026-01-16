@@ -44,7 +44,6 @@ export const TabList = forwardRef<
 >(({ children, className, value, onValueChange, ...props }, ref) => {
 	const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
 
-	// Build array of tab values from children
 	const tabValues = useMemo(() => {
 		const values: string[] = []
 		React.Children.forEach(children, (child) => {
@@ -63,7 +62,6 @@ export const TabList = forwardRef<
 		[onValueChange],
 	)
 
-	// Navigate to tab at index and focus it
 	const navigateToTab = useCallback(
 		(index: number) => {
 			const nextValue = tabValues[index]
@@ -88,7 +86,7 @@ export const TabList = forwardRef<
 			onPrev: () => navigateToTab((currentIndex - 1 + tabValues.length) % tabValues.length),
 			onFirst: () => navigateToTab(0),
 			onLast: () => navigateToTab(tabValues.length - 1),
-			orientation: "both", // Support both horizontal and vertical arrows
+			orientation: "both",
 		})
 	}, [tabValues, value, navigateToTab])
 

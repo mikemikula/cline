@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import AutoApproveBar from "../auto-approve-menu/AutoApproveBar"
 
-// Mock ExtensionStateContext
 vi.mock("@/context/ExtensionStateContext", () => ({
 	useExtensionState: () => ({
 		autoApprovalSettings: {
@@ -15,7 +14,6 @@ vi.mock("@/context/ExtensionStateContext", () => ({
 	}),
 }))
 
-// Mock AutoApproveModal
 vi.mock("../auto-approve-menu/AutoApproveModal", () => ({
 	default: () => null,
 }))
@@ -49,7 +47,6 @@ describe("AutoApproveBar Accessibility", () => {
 		const button = screen.getByRole("button")
 		button.focus()
 		await user.keyboard("{Enter}")
-		// Modal visibility state should change (tested via component behavior)
 	})
 
 	it("should toggle modal with Space key", async () => {
@@ -59,6 +56,5 @@ describe("AutoApproveBar Accessibility", () => {
 		const button = screen.getByRole("button")
 		button.focus()
 		await user.keyboard(" ")
-		// Modal visibility state should change
 	})
 })

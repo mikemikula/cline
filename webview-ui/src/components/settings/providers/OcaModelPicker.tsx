@@ -11,7 +11,6 @@ import ThinkingBudgetSlider from "../ThinkingBudgetSlider"
 import { normalizeApiConfiguration } from "../utils/providerUtils"
 import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 
-// Component to safely render sanitized HTML
 const SafeHtml: React.FC<{ html: string }> = ({ html }) => {
 	const [sanitizedHtml, setSanitizedHtml] = useState("")
 
@@ -19,7 +18,6 @@ const SafeHtml: React.FC<{ html: string }> = ({ html }) => {
 		setSanitizedHtml(DOMPurify.sanitize(html))
 	}, [html])
 
-	// Parse the sanitized HTML and convert to React elements
 	const content = useMemo(() => {
 		if (!sanitizedHtml) {
 			return null
@@ -38,12 +36,10 @@ const SafeHtml: React.FC<{ html: string }> = ({ html }) => {
 				const tagName = element.tagName.toLowerCase()
 				const props: any = { key: index }
 
-				// Copy attributes
 				Array.from(element.attributes).forEach((attr) => {
 					if (attr.name === "class") {
 						props.className = attr.value
 					} else if (attr.name === "style") {
-						// Parse inline styles
 						const styles: Record<string, string> = {}
 						attr.value.split(";").forEach((style) => {
 							const [key, value] = style.split(":").map((s) => s.trim())
@@ -58,7 +54,6 @@ const SafeHtml: React.FC<{ html: string }> = ({ html }) => {
 					}
 				})
 
-				// Convert children
 				const children = Array.from(element.childNodes).map((child, i) => convertNodeToReact(child, i))
 
 				return React.createElement(tagName, props, ...children)

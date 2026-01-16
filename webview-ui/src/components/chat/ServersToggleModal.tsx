@@ -55,12 +55,10 @@ const ServersToggleModal = forwardRef<ServersToggleModalHandle, ServersToggleMod
 			}
 		}, [isVisible, setMcpServers])
 
-		// Close modal when clicking outside
 		useClickAway(wrapperRef, () => {
 			setIsVisible(false)
 		})
 
-		// Calculate positions for modal and arrow
 		useEffect(() => {
 			if (isVisible && buttonRef.current) {
 				const buttonRect = buttonRef.current.getBoundingClientRect()

@@ -81,12 +81,10 @@ export const WithCopyButton = forwardRef<HTMLDivElement, WithCopyButtonProps>(
 		const hasCopyFunctionality = !!(textToCopy || onCopy)
 
 		return (
-			// biome-ignore lint/a11y/noStaticElementInteractions: onMouseUp is for text selection detection, not user interaction
 			<div
 				className={cn("group relative w-full", className)}
-				onMouseUp={onMouseUp}
+				{...(onMouseUp ? { onMouseUp } : { role: "presentation" })}
 				ref={ref}
-				role="presentation"
 				style={style}
 				{...props}>
 				{hasCopyFunctionality && (

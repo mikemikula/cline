@@ -185,7 +185,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 							onChange={(e) => {
 								if (e.target.value) {
 									handleCreateHook(e.target.value)
-									// Reset selection after creating
+
 									e.target.value = ""
 								}
 							}}

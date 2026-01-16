@@ -217,7 +217,7 @@ const ServerRow = ({
 				/>
 			)}
 			<span className="flex-1 overflow-hidden break-all whitespace-normal flex items-center">{displayName}</span>
-			{/* Collapsed view controls */}
+			{}
 			{!server.error && (
 				<Button
 					aria-label="Restart Server"
@@ -246,7 +246,7 @@ const ServerRow = ({
 					<Trash2Icon />
 				</Button>
 			)}
-			{/* Toggle Switch */}
+			{}
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<div className="flex items-center gap-2">
@@ -264,7 +264,7 @@ const ServerRow = ({
 				</TooltipTrigger>
 				{isAlwaysEnabled && <TooltipContent>This server is required and cannot be disabled</TooltipContent>}
 			</Tooltip>
-			{/* Status indicators */}
+			{}
 			{server.error ? (
 				<span className="codicon codicon-error text-error" title={server.error} />
 			) : server.status === "connecting" || isRestarting ? (

@@ -90,14 +90,12 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 			focus: () => triggerWrapperRef.current?.focus(),
 		}))
 
-		// Auto-switch to rules tab if hooks become disabled while viewing hooks tab
 		useEffect(() => {
 			if (currentView === "hooks" && !hooksEnabled) {
 				setCurrentView("rules")
 			}
 		}, [currentView, hooksEnabled])
 
-		// Auto-switch to rules tab if skills become disabled while viewing skills tab
 		useEffect(() => {
 			if (currentView === "skills" && !skillsEnabled) {
 				setCurrentView("rules")
@@ -108,7 +106,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 			if (isVisible) {
 				FileServiceClient.refreshRules({} as EmptyRequest)
 					.then((response: RefreshedRules) => {
-						// Update state with the response data using all available setters
 						if (response.globalClineRulesToggles?.toggles) {
 							setGlobalClineRulesToggles(response.globalClineRulesToggles.toggles)
 						}
@@ -145,7 +142,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 			setLocalWorkflowToggles,
 		])
 
-		// Refresh hooks when hooks tab becomes visible
 		useEffect(() => {
 			if (!isVisible || currentView !== "hooks") {
 				return
@@ -153,7 +149,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 
 			const abortController = new AbortController()
 
-			// Initial refresh when tab opens
 			const refreshHooks = () => {
 				if (abortController.signal.aborted) {
 					return
@@ -173,10 +168,8 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 					})
 			}
 
-			// Refresh immediately
 			refreshHooks()
 
-			// Poll every 1 second to detect filesystem changes
 			const pollInterval = setInterval(refreshHooks, 1000)
 
 			return () => {
@@ -185,7 +178,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 			}
 		}, [isVisible, currentView])
 
-		// Refresh skills when skills tab becomes visible
 		useEffect(() => {
 			if (!isVisible || currentView !== "skills") {
 				return
@@ -212,10 +204,8 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 					})
 			}
 
-			// Refresh immediately
 			refreshSkills()
 
-			// Poll every 1 second to detect filesystem changes
 			const pollInterval = setInterval(refreshSkills, 1000)
 
 			return () => {
@@ -224,12 +214,10 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 			}
 		}, [isVisible, currentView])
 
-		// Format global rules for display with proper typing
 		const globalRules = Object.entries(globalClineRulesToggles || {})
 			.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
 			.sort(([a], [b]) => a.localeCompare(b))
 
-		// Format local rules for display with proper typing
 		const localRules = Object.entries(localClineRulesToggles || {})
 			.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
 			.sort(([a], [b]) => a.localeCompare(b))
@@ -254,15 +242,12 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 			.map(([path, enabled]): [string, boolean] => [path, enabled as boolean])
 			.sort(([a], [b]) => a.localeCompare(b))
 
-		// Get remote rules and workflows from remote config
 		const remoteGlobalRules = remoteConfigSettings.remoteGlobalRules || []
 		const remoteGlobalWorkflows = remoteConfigSettings.remoteGlobalWorkflows || []
 
-		// Check if we have any remote rules or workflows
 		const hasRemoteRules = remoteGlobalRules.length > 0
 		const hasRemoteWorkflows = remoteGlobalWorkflows.length > 0
 
-		// Handle toggle rule using gRPC
 		const toggleRule = (isGlobal: boolean, rulePath: string, enabled: boolean) => {
 			FileServiceClient.toggleClineRule(
 				ToggleClineRuleRequest.create({
@@ -272,7 +257,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				}),
 			)
 				.then((response) => {
-					// Update the local state with the response
 					if (response.globalClineRulesToggles?.toggles) {
 						setGlobalClineRulesToggles(response.globalClineRulesToggles.toggles)
 					}
@@ -296,7 +280,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				}),
 			)
 				.then((response) => {
-					// Update the local state with the response
 					if (response.toggles) {
 						setLocalCursorRulesToggles(response.toggles)
 					}
@@ -340,7 +323,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				})
 		}
 
-		// Toggle hook handler
 		const toggleHook = (isGlobal: boolean, hookName: string, enabled: boolean, workspaceName?: string) => {
 			FileServiceClient.toggleHook({
 				metadata: {} as any,
@@ -380,7 +362,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				})
 		}
 
-		// Handle toggle for remote rules
 		const toggleRemoteRule = (ruleName: string, enabled: boolean) => {
 			FileServiceClient.toggleClineRule(
 				ToggleClineRuleRequest.create({
@@ -390,7 +371,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				}),
 			)
 				.then((response) => {
-					// Update the local state with the response
 					if (response.remoteRulesToggles?.toggles) {
 						setRemoteRulesToggles(response.remoteRulesToggles.toggles)
 					}
@@ -400,7 +380,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				})
 		}
 
-		// Handle toggle for remote workflows
 		const toggleRemoteWorkflow = (workflowName: string, enabled: boolean) => {
 			FileServiceClient.toggleWorkflow(
 				ToggleWorkflowRequest.create({
@@ -419,7 +398,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				})
 		}
 
-		// Handle toggle for skills
 		const toggleSkill = (isGlobal: boolean, skillPath: string, enabled: boolean) => {
 			FileServiceClient.toggleSkill(
 				ToggleSkillRequest.create({
@@ -435,7 +413,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 					if (response.localSkillsToggles) {
 						setLocalSkillsToggles(response.localSkillsToggles)
 					}
-					// Update local skills state
+
 					if (isGlobal) {
 						setGlobalSkills((prev) => prev.map((s) => (s.path === skillPath ? { ...s, enabled } : s)))
 					} else {
@@ -447,12 +425,10 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 				})
 		}
 
-		// Close modal when clicking outside
 		useClickAway(wrapperRef, () => {
 			setIsVisible(false)
 		})
 
-		// Calculate positions for modal and arrow
 		useEffect(() => {
 			if (isVisible && buttonRef.current) {
 				const buttonRect = buttonRef.current.getBoundingClientRect()
@@ -487,9 +463,9 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 
 				{isVisible && (
 					<PopupModalContainer $arrowPosition={arrowPosition} $menuPosition={menuPosition} ref={popupContainerRef}>
-						{/* Fixed header section - tabs and description */}
+						{}
 						<div className="flex-shrink-0 px-2 pt-0">
-							{/* Tabs container */}
+							{}
 							<div
 								style={{
 									display: "flex",
@@ -521,7 +497,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 								</div>
 							</div>
 
-							{/* Remote config banner */}
+							{}
 							{(currentView === "rules" && hasRemoteRules) ||
 							(currentView === "workflows" && hasRemoteWorkflows) ? (
 								<div className="flex items-center gap-2 px-5 py-3 mb-4 bg-vscode-textBlockQuote-background border-l-[3px] border-vscode-textLink-foreground">
@@ -534,7 +510,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 								</div>
 							) : null}
 
-							{/* Description text */}
+							{}
 							<div className="text-xs text-description mb-4">
 								{currentView === "rules" ? (
 									<p>
@@ -574,11 +550,11 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 							</div>
 						</div>
 
-						{/* Scrollable content area */}
+						{}
 						<div className="flex-1 overflow-y-auto px-2 pb-3" style={{ minHeight: 0 }}>
 							{currentView === "rules" ? (
 								<>
-									{/* Remote Rules Section */}
+									{}
 									{hasRemoteRules && (
 										<div className="mb-3">
 											<div className="text-sm font-normal mb-2">Enterprise Rules</div>
@@ -602,11 +578,11 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										</div>
 									)}
 
-									{/* Global Rules Section */}
+									{}
 									<div className="mb-3">
 										<div className="text-sm font-normal mb-2">Global Rules</div>
 
-										{/* File-based Global Rules */}
+										{}
 										<RulesToggleList
 											isGlobal={true}
 											listGap="small"
@@ -618,7 +594,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										/>
 									</div>
 
-									{/* Local Rules Section */}
+									{}
 									<div className="-mb-2.5">
 										<div className="text-sm font-normal mb-2">Workspace Rules</div>
 										<RulesToggleList
@@ -662,7 +638,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 								</>
 							) : currentView === "workflows" ? (
 								<>
-									{/* Remote Workflows Section */}
+									{}
 									{hasRemoteWorkflows && (
 										<div className="mb-3">
 											<div className="text-sm font-normal mb-2">Enterprise Workflows</div>
@@ -687,11 +663,11 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										</div>
 									)}
 
-									{/* Global Workflows Section */}
+									{}
 									<div className="mb-3">
 										<div className="text-sm font-normal mb-2">Global Workflows</div>
 
-										{/* File-based Global Workflows */}
+										{}
 										<RulesToggleList
 											isGlobal={true}
 											listGap="small"
@@ -703,7 +679,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										/>
 									</div>
 
-									{/* Local Workflows Section */}
+									{}
 									<div className="-mb-2.5">
 										<div className="text-sm font-normal mb-2">Workspace Workflows</div>
 										<RulesToggleList
@@ -730,8 +706,8 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 											</VSCodeLink>
 										</p>
 									</div>
-									{/* Hooks Tab */}
-									{/* Windows warning banner */}
+									{}
+									{}
 									{isWindows && (
 										<div className="flex items-center gap-2 px-5 py-3 mb-4 bg-vscode-inputValidation-warningBackground border-l-[3px] border-vscode-inputValidation-warningBorder">
 											<i className="codicon codicon-warning text-sm" />
@@ -742,7 +718,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										</div>
 									)}
 
-									{/* Global Hooks */}
+									{}
 									<div className="mb-3">
 										<div className="text-sm font-normal mb-2">Global Hooks</div>
 										<div className="flex flex-col gap-0">
@@ -757,7 +733,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 														isWindows={isWindows}
 														key={hook.name}
 														onDelete={(hooksToggles) => {
-															// Use response data directly, no need to refresh
 															setGlobalHooks(hooksToggles.globalHooks || [])
 															setWorkspaceHooks(hooksToggles.workspaceHooks || [])
 														}}
@@ -774,7 +749,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										</div>
 									</div>
 
-									{/* Workspace Hooks - one section per workspace */}
+									{}
 									{workspaceHooks.map((workspace, index) => (
 										<div
 											className={index === workspaceHooks.length - 1 ? "-mb-2.5" : "mb-3"}
@@ -794,7 +769,6 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 															isWindows={isWindows}
 															key={hook.absolutePath}
 															onDelete={(hooksToggles) => {
-																// Use response data directly, no need to refresh
 																setGlobalHooks(hooksToggles.globalHooks || [])
 																setWorkspaceHooks(hooksToggles.workspaceHooks || [])
 															}}
@@ -816,7 +790,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 								</>
 							) : currentView === "skills" ? (
 								<>
-									{/* Global Skills Section */}
+									{}
 									<div className="mb-3">
 										<div className="text-sm font-normal mb-2">Global Skills</div>
 										<div className="flex flex-col gap-0">
@@ -836,7 +810,7 @@ const ClineRulesToggleModal = forwardRef<ClineRulesToggleModalHandle, ClineRules
 										</div>
 									</div>
 
-									{/* Workspace Skills Section */}
+									{}
 									<div className="-mb-2.5">
 										<div className="text-sm font-normal mb-2">Workspace Skills</div>
 										<div className="flex flex-col gap-0">

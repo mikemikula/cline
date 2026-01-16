@@ -100,7 +100,6 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 		<Thumbnails files={files ?? []} images={images ?? []} style={{ marginTop: "8px" }} />
 	)
 
-	// When editing, render a div with textarea (can't nest interactive elements in button)
 	if (isEditing) {
 		return (
 			<div className="py-2 px-2.5" style={containerStyle}>
@@ -154,9 +153,6 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 		)
 	}
 
-	// When not editing, render clickable content
-	// When thumbnails exist, use a div wrapper to avoid nested buttons (invalid HTML)
-	// Thumbnails contain their own button elements for opening images/files
 	if (thumbnails) {
 		return (
 			<div className="py-2 px-2.5" style={containerStyle}>
@@ -172,7 +168,6 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 		)
 	}
 
-	// No thumbnails - render as single button element
 	return (
 		<button
 			{...createBaseButtonProps("Click to edit message", handleClick)}
@@ -185,7 +180,6 @@ const UserMessage: React.FC<UserMessageProps> = ({ text, images, files, messageT
 	)
 }
 
-// Reusable button component for restore actions
 interface RestoreButtonProps {
 	type: ClineCheckpointRestore
 	label: string
