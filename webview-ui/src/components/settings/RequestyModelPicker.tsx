@@ -105,7 +105,9 @@ const RequestyModelPicker: React.FC<RequestyModelPickerProps> = ({ isPopup, base
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		return searchTerm ? highlight(fuse.search(searchTerm), "html") : searchableItems
+		return searchTerm
+			? highlight(fuse.search(searchTerm), "html")
+			: searchableItems.map((item) => ({ ...item, highlightRegions: [] as [number, number][] }))
 	}, [searchableItems, searchTerm, fuse])
 
 	const handleListboxSelect = useCallback(
@@ -220,7 +222,7 @@ const RequestyModelPicker: React.FC<RequestyModelPickerProps> = ({ isPopup, base
 									tabIndex={-1}>
 									<HighlightedText
 										className="model-item-highlight"
-										regions={item._highlightRegions}
+										regions={item.highlightRegions}
 										text={item.id}
 									/>
 								</DropdownItem>

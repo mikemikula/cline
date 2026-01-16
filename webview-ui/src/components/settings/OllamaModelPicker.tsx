@@ -68,7 +68,9 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		return searchTerm ? highlight(fuse.search(searchTerm)) : searchableItems
+		return searchTerm
+			? highlight(fuse.search(searchTerm))
+			: searchableItems.map((item) => ({ ...item, highlightRegions: [] as [number, number][] }))
 	}, [searchableItems, searchTerm, fuse])
 
 	const handleListboxSelect = useCallback(
@@ -176,7 +178,7 @@ const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({
 									onMouseEnter={() => setSelectedIndex(index)}
 									ref={elRef}
 									type="button">
-									<HighlightedText regions={item._highlightRegions} text={item.id} />
+									<HighlightedText regions={item.highlightRegions} text={item.id} />
 								</DropdownItem>
 							)
 						})}

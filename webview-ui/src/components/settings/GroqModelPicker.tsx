@@ -121,7 +121,9 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		return debouncedSearchTerm ? highlight(fuse.search(debouncedSearchTerm), "html") : searchableItems
+		return debouncedSearchTerm
+			? highlight(fuse.search(debouncedSearchTerm), "html")
+			: searchableItems.map((item) => ({ ...item, highlightRegions: [] as [number, number][] }))
 	}, [searchableItems, debouncedSearchTerm, fuse])
 
 	const handleListboxSelect = useCallback(
@@ -238,7 +240,7 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 									tabIndex={-1}>
 									<HighlightedText
 										className="model-item-highlight"
-										regions={item._highlightRegions}
+										regions={item.highlightRegions}
 										text={item.id}
 									/>
 								</div>

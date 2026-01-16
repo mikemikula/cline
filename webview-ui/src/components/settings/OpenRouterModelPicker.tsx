@@ -194,15 +194,15 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		// First, get all favorited models
-		const favoritedModels = searchableItems.filter((item) => favoritedModelIds.includes(item.id))
+		const addEmptyRegions = <T extends Record<string, unknown>>(items: T[]) =>
+			items.map((item) => ({ ...item, highlightRegions: [] as [number, number][] }))
 
-		// Then get search results for non-favorited models
+		const favoritedModels = addEmptyRegions(searchableItems.filter((item) => favoritedModelIds.includes(item.id)))
+
 		const searchResults = searchTerm
 			? highlight(fuse.search(searchTerm), "html").filter((item) => !favoritedModelIds.includes(item.id))
-			: searchableItems.filter((item) => !favoritedModelIds.includes(item.id))
+			: addEmptyRegions(searchableItems.filter((item) => !favoritedModelIds.includes(item.id)))
 
-		// Combine favorited models with search results
 		return [...favoritedModels, ...searchResults]
 	}, [searchableItems, searchTerm, fuse, favoritedModelIds])
 
@@ -402,7 +402,7 @@ const OpenRouterModelPicker: React.FC<OpenRouterModelPickerProps> = ({ isPopup, 
 											<span>
 												<HighlightedText
 													className="model-item-highlight"
-													regions={item._highlightRegions}
+													regions={item.highlightRegions}
 													text={item.id}
 												/>
 											</span>

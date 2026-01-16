@@ -197,7 +197,9 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 	}, [tasks])
 
 	const taskHistorySearchResults = useMemo(() => {
-		const results = searchQuery ? highlight(fuse.search(searchQuery)) : tasks
+		const results = searchQuery
+			? highlight(fuse.search(searchQuery))
+			: tasks.map((t) => ({ ...t, highlightRegions: [] as [number, number][] }))
 
 		results.sort((a, b) => {
 			switch (sortOption) {
@@ -464,91 +466,72 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 	)
 }
 
-// https://gist.github.com/evenfrost/1ba123656ded32fb7a0cd4651efd4db0
-export const highlight = (fuseSearchResult: FuseResult<any>[], highlightClassName: string = "history-item-highlight") => {
-	const set = (obj: Record<string, any>, path: string, value: any) => {
-		const pathValue = path.split(".")
-		let i: number
-
-		for (i = 0; i < pathValue.length - 1; i++) {
-			obj = obj[pathValue[i]] as Record<string, any>
-		}
-
-		obj[pathValue[i]] = value
+export const HighlightedText = ({
+	text,
+	regions = [],
+	className = "history-item-highlight",
+}: {
+	text: string
+	regions?: readonly [number, number][]
+	className?: string
+}): React.ReactNode => {
+	if (!regions || regions.length === 0) {
+		return text
 	}
 
-	// Function to merge overlapping regions
-	const mergeRegions = (regions: [number, number][]): [number, number][] => {
-		if (regions.length === 0) {
-			return regions
+	const parts: React.ReactNode[] = []
+	let lastEnd = 0
+
+	for (const [start, end] of regions) {
+		if (start > lastEnd) {
+			parts.push(text.slice(lastEnd, start))
 		}
-
-		// Sort regions by start index
-		regions.sort((a, b) => a[0] - b[0])
-
-		const merged: [number, number][] = [regions[0]]
-
-		for (let i = 1; i < regions.length; i++) {
-			const last = merged[merged.length - 1]
-			const current = regions[i]
-
-			if (current[0] <= last[1] + 1) {
-				// Overlapping or adjacent regions
-				last[1] = Math.max(last[1], current[1])
-			} else {
-				merged.push(current)
-			}
-		}
-
-		return merged
+		parts.push(
+			<span className={className} key={start}>
+				{text.slice(start, end + 1)}
+			</span>,
+		)
+		lastEnd = end + 1
 	}
 
-	const generateHighlightedText = (inputText: string, regions: [number, number][] = []) => {
-		if (regions.length === 0) {
-			return inputText
-		}
-
-		// Sort and merge overlapping regions
-		const mergedRegions = mergeRegions(regions)
-
-		let content = ""
-		let nextUnhighlightedRegionStartingIndex = 0
-
-		mergedRegions.forEach((region) => {
-			const start = region[0]
-			const end = region[1]
-			const lastRegionNextIndex = end + 1
-
-			content += [
-				inputText.substring(nextUnhighlightedRegionStartingIndex, start),
-				`<span class="${highlightClassName}">`,
-				inputText.substring(start, lastRegionNextIndex),
-				"</span>",
-			].join("")
-
-			nextUnhighlightedRegionStartingIndex = lastRegionNextIndex
-		})
-
-		content += inputText.substring(nextUnhighlightedRegionStartingIndex)
-
-		return content
+	if (lastEnd < text.length) {
+		parts.push(text.slice(lastEnd))
 	}
+	return <>{parts}</>
+}
 
-	return fuseSearchResult
+const mergeRegions = (regions: readonly [number, number][]): [number, number][] => {
+	if (regions.length === 0) {
+		return []
+	}
+	const sorted = [...regions].sort((a, b) => a[0] - b[0])
+	const merged: [number, number][] = [[sorted[0][0], sorted[0][1]]]
+	for (let i = 1; i < sorted.length; i++) {
+		const last = merged[merged.length - 1]
+		const current = sorted[i]
+		if (current[0] <= last[1] + 1) {
+			last[1] = Math.max(last[1], current[1])
+		} else {
+			merged.push([current[0], current[1]])
+		}
+	}
+	return merged
+}
+
+export const highlight = <T extends Record<string, unknown>>(
+	fuseSearchResult: FuseResult<T>[],
+	highlightKey?: string,
+): (T & { highlightRegions: [number, number][] })[] =>
+	fuseSearchResult
 		.filter(({ matches }) => matches && matches.length)
 		.map(({ item, matches }) => {
-			const highlightedItem = { ...item }
-
+			let allRegions: [number, number][] = []
 			matches?.forEach((match) => {
-				if (match.key && typeof match.value === "string" && match.indices) {
-					// Merge overlapping regions before generating highlighted text
-					const mergedIndices = mergeRegions([...match.indices])
-					set(highlightedItem, match.key, generateHighlightedText(match.value, mergedIndices))
+				if (match.key && match.indices && (!highlightKey || match.key === highlightKey)) {
+					allRegions = allRegions.concat([...match.indices])
 				}
 			})
-
-			return highlightedItem
+			return { ...item, highlightRegions: mergeRegions(allRegions) }
 		})
-}
 
 export default memo(HistoryView)

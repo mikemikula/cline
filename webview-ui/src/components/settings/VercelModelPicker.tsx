@@ -101,9 +101,9 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		const searchResults = searchTerm ? highlight(fuse.search(searchTerm)) : searchableItems
-
-		return searchResults
+		return searchTerm
+			? highlight(fuse.search(searchTerm))
+			: searchableItems.map((item) => ({ ...item, highlightRegions: [] as [number, number][] }))
 	}, [searchableItems, searchTerm, fuse])
 
 	const handleListboxSelect = useCallback(
@@ -238,7 +238,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 											onMouseEnter={() => setSelectedIndex(index)}
 											ref={elRef}
 											type="button">
-											<HighlightedText regions={item._highlightRegions} text={item.id} />
+											<HighlightedText regions={item.highlightRegions} text={item.id} />
 										</DropdownItem>
 									)
 								})

@@ -104,17 +104,15 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ currentMode }) => {
 	}, [searchableItems])
 
 	const modelSearchResults = useMemo(() => {
-		// IMPORTANT: highlightjs has a bug where if you use sort/localCompare - "// results.sort((a, b) => a.id.localeCompare(b.id)) ...sorting like this causes ids in objects to be reordered and mismatched"
+		const addEmptyRegions = <T extends Record<string, unknown>>(items: T[]) =>
+			items.map((item) => ({ ...item, highlightRegions: [] as [number, number][] }))
 
-		// First, get all favorited models
-		const favoritedModels = searchableItems.filter((item) => favoritedModelIds.includes(item.id))
+		const favoritedModels = addEmptyRegions(searchableItems.filter((item) => favoritedModelIds.includes(item.id)))
 
-		// Then get search results for non-favorited models
 		const searchResults = searchTerm
 			? highlight(fuse.search(searchTerm)).filter((item) => !favoritedModelIds.includes(item.id))
-			: searchableItems.filter((item) => !favoritedModelIds.includes(item.id))
+			: addEmptyRegions(searchableItems.filter((item) => !favoritedModelIds.includes(item.id)))
 
-		// Combine favorited models with search results
 		return [...favoritedModels, ...searchResults]
 	}, [searchableItems, searchTerm, fuse, favoritedModelIds])
 
@@ -212,7 +210,7 @@ const HicapModelPicker: React.FC<HicapModelPickerProps> = ({ currentMode }) => {
 										ref={elRef}
 										type="button">
 										<div className="flex justify-between items-center">
-											<HighlightedText regions={item._highlightRegions} text={item.id} />
+											<HighlightedText regions={item.highlightRegions} text={item.id} />
 											<StarIcon
 												isFavorite={isFavorite}
 												onClick={(e) => {

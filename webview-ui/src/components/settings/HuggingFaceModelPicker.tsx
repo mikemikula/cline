@@ -112,7 +112,7 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 	const modelSearchResults = useMemo(() => {
 		const results = searchTerm
 			? highlight(fuse.search(searchTerm))
-			: searchableItems.map((item) => ({ ...item, _highlightRegions: [] }))
+			: searchableItems.map((item) => ({ ...item, highlightRegions: [] }))
 		return results
 	}, [searchTerm, fuse, searchableItems])
 
@@ -214,7 +214,7 @@ const HuggingFaceModelPicker: React.FC<HuggingFaceModelPickerProps> = ({ isPopup
 										onMouseEnter={() => setSelectedIndex(index)}
 										ref={elRef}
 										type="button">
-										<HighlightedText regions={result._highlightRegions} text={result.id} />
+										<HighlightedText regions={result.highlightRegions} text={result.id} />
 									</button>
 								)
 							})}

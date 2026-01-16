@@ -17,9 +17,10 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber, formatSize } from "@/utils/format"
+import { HighlightedText } from "./HistoryView"
 
 type HistoryViewItemProps = {
-	item: HistoryItem
+	item: HistoryItem & { highlightRegions?: [number, number][] }
 	index: number
 	selectedItems: string[]
 	pendingFavoriteToggles: Record<string, boolean>
@@ -91,7 +92,9 @@ const HistoryViewItem = ({
 				}}>
 				<div className="flex justify-between items-center">
 					<div className="line-clamp-1 overflow-hidden break-words whitespace-pre-wrap">
-						<span className="ph-no-capture">{item.task}</span>
+						<span className="ph-no-capture">
+							<HighlightedText regions={item.highlightRegions} text={item.task || ""} />
+						</span>
 					</div>
 					<div className="flex gap-2">
 						<Button
